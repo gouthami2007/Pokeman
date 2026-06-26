@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Nexus — Trainer Roster</title>
+<style>
+/* ============================================================
+   POKÉMON FIELD LOG — DESIGN SYSTEM
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+:root {
+  --bg-deep: #16201b;
+  --bg-panel: #1f2c25;
+  --bg-panel-2: #243329;
+  --parchment: #f3eedd;
+  --parchment-2: #e9e1c8;
+  --ink: #20281f;
+  --ink-soft: #5b6359;
+  --red: #d6453d;
+  --red-dark: #b1342d;
+  --yellow: #ffcb05;
+  --teal: #3a6b62;
+  --teal-light: #4f8a7e;
+  --line: rgba(243, 238, 221, 0.12);
+  --radius-card: 14px;
+  --radius-sm: 8px;
+  --shadow-deep: 0 18px 40px rgba(0,0,0,0.45);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  background-image: 
+    url("https://tse1.mm.bing.net/th/id/OIP.GLsiFvYJaBOcv4FX7f5QVwHaD6?r=0&rs=1&pid=ImgDetMain&o=7&rm=3");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--parchment);
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+/* ---------- Top chrome / nav ---------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 28px;
+  background: var(--bg-panel);
+  border-bottom: 3px solid var(--red);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  box-shadow: var(--shadow-deep);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.brand-mark {
+  height: 50px;
+  width: 50px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+.brand-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.65rem;
+  letter-spacing: 0.02em;
+  color: #ffcb05;
+  text-shadow:
+    -3px -3px 0 #3b4cca,
+    3px -3px 0 #3b4cca,
+    -3px 3px 0 #3b4cca,
+    3px 3px 0 #3b4cca,
+    0 0 10px rgba(59, 76, 202, 0.9);
+  line-height: 1.05;
+}
+.brand small {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--yellow);
+  text-transform: uppercase;
+}
+nav.main-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+nav.main-nav button {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--parchment-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+nav.main-nav button:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+nav.main-nav button.active {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--ink);
+}
+/* ---------- Page shell ---------- */
+main.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 28px 80px;
+}
+.view { display: none; }
+.view.active { display: block; }
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal-light);
+  margin: 0 0 6px;
+}
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  margin: 0 0 26px;
+  color: #ffcb05;
+  text-shadow:
+    -2px -2px 0 #3b4cca,
+    2px -2px 0 #3b4cca,
+    -2px 2px 0 #3b4cca,
+    2px 2px 0 #3b4cca;
+}
+/* ---------- Scanner control bar ---------- */
+.scanner-bar {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-deep);
+}
+@media (max-width: 760px) {
+  .scanner-bar { grid-template-columns: 1fr; }
+}
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal-light);
+  margin-bottom: 7px;
+}
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-wrap::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 6px var(--yellow);
+  animation: blink 1.6s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+input[type="text"],
+input[type="number"],
+input[type="url"],
+select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-panel-2);
+  color: var(--parchment);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.search-wrap input[type="text"] { padding-left: 30px; }
+input::placeholder { color: rgba(243,238,221,0.4); }
+input:focus, select:focus {
+  border-color: var(--yellow);
+}
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--yellow) 50%), linear-gradient(135deg, var(--yellow) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: var(--red);
+  color: #fff5f0;
+  box-shadow: 0 6px 16px rgba(214,69,61,0.35);
+}
+.btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn-teal {
+  background: var(--teal);
+  color: #ecfdf6;
+  box-shadow: 0 6px 16px rgba(58,107,98,0.35);
+}
+.btn-teal:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--parchment-2);
+}
+.btn-ghost:hover { border-color: var(--yellow); color: var(--yellow); }
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(214,69,61,0.5);
+  color: #ff8a83;
+}
+.btn-danger:hover { background: rgba(214,69,61,0.15); border-color: var(--red); }
+.btn-sm { padding: 7px 13px; font-size: 0.7rem; }
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+/* ---------- Result count strip ---------- */
+.result-strip {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--teal-light);
+  margin-bottom: 16px;
+  letter-spacing: 0.03em;
+}
+.result-strip strong { color: var(--yellow); }
+/* ---------- Pokémon cards ---------- */
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+.poke-card {
+  position: relative;
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-deep);
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.poke-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 46px rgba(0,0,0,0.5);
+}
+.poke-card .type-tab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+}
+.poke-card .card-media {
+  background: var(--parchment-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 18px 6px;
+  position: relative;
+}
+.poke-card .card-media img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,0.2));
+}
+.poke-card .level-chip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.poke-card .card-body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.poke-card .poke-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin: 0;
+}
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #fff;
+  width: fit-content;
+}
+.card-stat-row {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  display: flex;
+  justify-content: space-between;
+}
+.card-foot {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(32,40,31,0.15);
+}
+.card-foot .btn { flex: 1; }
+/* ---------- Empty state ---------- */
+.empty-state {
+  text-align: center;
+  padding: 70px 20px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-card);
+  color: var(--parchment-2);
+}
+.empty-state .eyebrow {
+  font-family: var(--font-mono);
+  color: var(--teal-light);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.empty-state h3 {
+  font-family: var(--font-display);
+  margin: 0 0 8px;
+}
+.empty-state p { margin: 0 0 20px; color: var(--parchment-2); opacity: 0.8; }
+/* ---------- Forms ---------- */
+.form-shell {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 30px;
+  box-shadow: var(--shadow-deep);
+}
+.form-grid {
+  display: grid;
+  gap: 18px;
+}
+.form-row { display: flex; flex-direction: column; }
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--parchment-2);
+  opacity: 0.65;
+  margin-top: 6px;
+}
+.form-error {
+  font-size: 0.75rem;
+  color: #ff8a83;
+  margin-top: 6px;
+  display: none;
+  font-family: var(--font-mono);
+}
+.form-row.invalid .form-error { display: block; }
+.form-row.invalid input, .form-row.invalid select { border-color: var(--red); }
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.form-actions .btn { flex: 1; }
+.live-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 22px;
+}
+.live-preview img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: var(--parchment-2);
+  border-radius: 10px;
+  padding: 6px;
+  flex-shrink: 0;
+}
+.live-preview .lp-text {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--parchment-2);
+}
+.live-preview .lp-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--parchment);
+  margin-bottom: 3px;
+}
+/* ---------- Toast & Modal ---------- */
+.toast {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--teal);
+  color: #ecfdf6;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 13px 22px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-deep);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 100;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,14,11,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 90;
+}
+.modal-backdrop.show { opacity: 1; pointer-events: auto; }
+.modal-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 26px;
+  width: 360px;
+  text-align: center;
+  transform: scale(0.92);
+  transition: transform 0.2s ease;
+}
+.modal-backdrop.show .modal-box { transform: scale(1); }
+/* ---------- Footer ---------- */
+footer.site-footer {
+  text-align: center;
+  padding: 30px 20px 40px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: rgba(243,238,221,0.35);
+}
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .site-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  main.page { padding: 24px 16px 60px; }
+  .roster-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 420px) {
+  .roster-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <clipPath id="topHalf"><rect x="0" y="0" width="100" height="48"/></clipPath>
+          <clipPath id="bottomHalf"><rect x="0" y="52" width="100" height="48"/></clipPath>
+        </defs>
+        <circle cx="50" cy="50" r="46" fill="#fff" stroke="#1d1d1d" stroke-width="4"/>
+        <g clip-path="url(#topHalf)">
+          <circle cx="50" cy="50" r="46" fill="#d6453d" stroke="#1d1d1d" stroke-width="4"/>
+        </g>
+        <g clip-path="url(#bottomHalf)">
+          <circle cx="50" cy="50" r="46" fill="#fff" stroke="#1d1d1d" stroke-width="4"/>
+        </g>
+        <rect x="2" y="46" width="96" height="8" fill="#1d1d1d"/>
+        <circle cx="50" cy="50" r="15" fill="#fff" stroke="#1d1d1d" stroke-width="5"/>
+        <circle cx="50" cy="50" r="7" fill="#fff" stroke="#1d1d1d" stroke-width="3.5"/>
+      </svg>
+      <div>
+        <div class="brand-text">Pokémon Nexus</div>
+        <small>TRAINER ROSTER TERMINAL</small>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <button type="button" id="nav-roster" class="active" onclick="showView('roster')">Roster</button>
+      <button type="button" id="nav-add" onclick="showView('add')">Add Pokémon</button>
+    </nav>
+  </header>
+  <main class="page">
+    <!-- ROSTER VIEW -->
+    <section class="view active" id="view-roster">
+      <p class="page-eyebrow">// scan_results</p>
+      <h1 class="page-title">Pokémon Nexus</h1>
+      <div class="scanner-bar">
+        <div class="form-row">
+          <label class="field-label" for="search-input">Search by name</label>
+          <div class="search-wrap">
+            <input type="text" id="search-input" placeholder="e.g. Pikachu">
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="type-filter">Filter by type</label>
+          <select id="type-filter">
+            <option value="All">All types</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="sort-select">Sort by</label>
+          <select id="sort-select">
+            <option value="default">Default order</option>
+            <option value="name-asc">Name (A–Z)</option>
+            <option value="level-asc">Level (Low → High)</option>
+            <option value="level-desc">Level (High → Low)</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-ghost btn-sm" id="reset-roster-btn" type="button">Reset to defaults</button>
+        <button class="btn btn-primary" type="button" onclick="showView('add')">+ Add Pokémon</button>
+      </div>
+      <p class="result-strip" id="result-strip"></p>
+      <div class="roster-grid" id="roster-grid"></div>
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <div class="eyebrow">// no_match</div>
+        <h3>No Pokémon found</h3>
+        <p>Try a different name, clear the type filter, or add a new entry to the log.</p>
+        <button class="btn btn-primary" type="button" onclick="showView('add')">+ Add Pokémon</button>
+      </div>
+    </section>
+    <!-- ADD VIEW -->
+    <section class="view" id="view-add">
+      <p class="page-eyebrow">// new_entry</p>
+      <h1 class="page-title">Add a Pokémon</h1>
+      <div class="form-shell">
+        <div class="live-preview">
+          <img id="add-preview-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Preview">
+          <div class="lp-text">
+            <div class="lp-name" id="add-preview-name">Unnamed Pokémon</div>
+            <div id="add-preview-meta">Type: — &nbsp;·&nbsp; Level: —</div>
+          </div>
+        </div>
+        <form id="add-form" class="form-grid" novalidate>
+          <div class="form-row" id="add-row-name">
+            <label class="field-label" for="add-name-input">Name</label>
+            <input type="text" id="add-name-input" placeholder="e.g. Pikachu" autocomplete="off">
+            <span class="form-error">Please enter a name.</span>
+          </div>
+          <div class="form-row" id="add-row-type">
+            <label class="field-label" for="add-type-input">Type</label>
+            <select id="add-type-input">
+              <option value="">Select a type</option>
+              <option>Fire</option>
+              <option>Water</option>
+              <option>Grass</option>
+              <option>Electric</option>
+              <option>Poison</option>
+              <option>Rock</option>
+              <option>Normal</option>
+              <option>Fighting</option>
+              <option>Psychic</option>
+              <option>Ground</option>
+              <option>Ice</option>
+              <option>Dragon</option>
+            </select>
+            <span class="form-error">Please choose a type.</span>
+          </div>
+          <div class="form-row" id="add-row-level">
+            <label class="field-label" for="add-level-input">Level</label>
+            <input type="number" id="add-level-input" min="1" max="100" placeholder="1–100">
+            <span class="form-hint">Between 1 and 100.</span>
+            <span class="form-error">Enter a level between 1 and 100.</span>
+          </div>
+          <div class="form-row" id="add-row-img">
+            <label class="field-label" for="add-img-input">Image URL</label>
+            <input type="url" id="add-img-input" placeholder="https://...">
+            <span class="form-hint">Leave blank to use a placeholder sprite.</span>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" type="button" onclick="showView('roster')">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Pokémon</button>
+          </div>
+        </form>
+      </div>
+    </section>
+    <!-- EDIT VIEW -->
+    <section class="view" id="view-edit">
+      <p class="page-eyebrow">// edit_entry</p>
+      <h1 class="page-title">Edit Pokémon</h1>
+      <div class="form-shell" id="edit-form-shell">
+        <div class="live-preview">
+          <img id="edit-preview-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Preview">
+          <div class="lp-text">
+            <div class="lp-name" id="edit-preview-name">Unnamed Pokémon</div>
+            <div id="edit-preview-meta">Type: — &nbsp;·&nbsp; Level: —</div>
+          </div>
+        </div>
+        <form id="edit-form" class="form-grid" novalidate>
+          <input type="hidden" id="edit-id-input">
+          <div class="form-row" id="edit-row-name">
+            <label class="field-label" for="edit-name-input">Name</label>
+            <input type="text" id="edit-name-input" autocomplete="off">
+            <span class="form-error">Please enter a name.</span>
+          </div>
+          <div class="form-row" id="edit-row-type">
+            <label class="field-label" for="edit-type-input">Type</label>
+            <select id="edit-type-input">
+              <option value="">Select a type</option>
+              <option>Fire</option>
+              <option>Water</option>
+              <option>Grass</option>
+              <option>Electric</option>
+              <option>Poison</option>
+              <option>Rock</option>
+              <option>Normal</option>
+              <option>Fighting</option>
+              <option>Psychic</option>
+              <option>Ground</option>
+              <option>Ice</option>
+              <option>Dragon</option>
+            </select>
+            <span class="form-error">Please choose a type.</span>
+          </div>
+          <div class="form-row" id="edit-row-level">
+            <label class="field-label" for="edit-level-input">Level</label>
+            <input type="number" id="edit-level-input" min="1" max="100">
+            <span class="form-hint">Between 1 and 100.</span>
+            <span class="form-error">Enter a level between 1 and 100.</span>
+          </div>
+          <div class="form-row" id="edit-row-img">
+            <label class="field-label" for="edit-img-input">Image URL</label>
+            <input type="url" id="edit-img-input">
+            <span class="form-hint">Leave blank to use a placeholder sprite.</span>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" type="button" onclick="showView('roster')">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+          </div>
+        </form>
+      </div>
+      <div class="empty-state" id="edit-not-found" style="display:none;">
+        <div class="eyebrow">// not_found</div>
+        <h3>This Pokémon doesn't exist</h3>
+        <p>It may have already been deleted from the roster.</p>
+        <button class="btn btn-primary" type="button" onclick="showView('roster')">Back to Roster</button>
+      </div>
+    </section>
+  </main>
+  <div class="modal-backdrop" id="delete-modal">
+    <div class="modal-box">
+      <h3>Remove from roster?</h3>
+      <p id="delete-modal-text">This Pokémon will be deleted permanently.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cancel-delete-btn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="confirm-delete-btn" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <footer class="site-footer">POKÉMON NEXUS TERMINAL — DATA STORED LOCALLY ON THIS DEVICE</footer>
+
+  <script>
+  /* ============================================================
+     DATA LAYER
+     ============================================================ */
+  const STORAGE_KEY = 'pokemonNexusRoster';
+  const FALLBACK_IMG = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png';
+  const PRESET_POKEMON = [
+    { id: 1, name: 'Pikachu', type: 'Electric', level: 35, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png' },
+    { id: 2, name: 'Charizard', type: 'Fire', level: 50, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png' },
+    { id: 3, name: 'Blastoise', type: 'Water', level: 48, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png' },
+    { id: 4, name: 'Venusaur', type: 'Grass', level: 47, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png' },
+    { id: 5, name: 'Bulbasaur', type: 'Grass', level: 20, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png' },
+    { id: 6, name: 'Raichu', type: 'Electric', level: 40, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png' },
+    { id: 7, name: 'Gengar', type: 'Poison', level: 42, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png' },
+    { id: 8, name: 'Onix', type: 'Rock', level: 33, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/95.png' },
+    { id: 9, name: 'Jigglypuff', type: 'Normal', level: 18, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png' },
+    { id: 10, name: 'Machamp', type: 'Fighting', level: 45, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png' },
+    { id: 11, name: 'Gyarados', type: 'Water', level: 49, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png' },
+    { id: 12, name: 'Alakazam', type: 'Psychic', level: 44, img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/65.png' }
+  ];
+  const TYPE_COLORS = {
+    Fire: '#e8743b', Water: '#4f9bd6', Grass: '#5fae5a', Electric: '#ffcb05',
+    Poison: '#9b59a8', Rock: '#a8924a', Normal: '#a9a48a', Fighting: '#c0392b',
+    Psychic: '#e9698a', Ground: '#c2a15c', Ice: '#6cc3d8', Dragon: '#7866d6',
+    Default: '#7a8a7c'
+  };
+  function typeColor(type) { return TYPE_COLORS[type] || TYPE_COLORS.Default; }
+  function loadRoster() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { saveRoster(PRESET_POKEMON); return [...PRESET_POKEMON]; }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      throw new Error('bad shape');
+    } catch (e) {
+      saveRoster(PRESET_POKEMON);
+      return [...PRESET_POKEMON];
+    }
+  }
+  function saveRoster(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+  function nextId(list) { return list.reduce((max, p) => Math.max(max, p.id), 0) + 1; }
+  function getPokemonById(id) { return loadRoster().find(p => p.id === Number(id)); }
+  function addPokemon(entry) {
+    const list = loadRoster();
+    entry.id = nextId(list);
+    list.push(entry);
+    saveRoster(list);
+    return entry;
+  }
+  function updatePokemon(id, updates) {
+    const list = loadRoster();
+    const idx = list.findIndex(p => p.id === Number(id));
+    if (idx === -1) return null;
+    list[idx] = { ...list[idx], ...updates, id: list[idx].id };
+    saveRoster(list);
+    return list[idx];
+  }
+  function deletePokemon(id) {
+    const list = loadRoster().filter(p => p.id !== Number(id));
+    saveRoster(list);
+  }
+  function resetRoster() { saveRoster(PRESET_POKEMON); }
+  function searchByName(list, query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(p => p.name.toLowerCase().includes(q));
+  }
+  function filterByType(list, type) {
+    if (!type || type === 'All') return list;
+    return list.filter(p => p.type === type);
+  }
+  function sortRoster(list, mode) {
+    const copy = [...list];
+    switch (mode) {
+      case 'name-asc': return copy.sort((a, b) => a.name.localeCompare(b.name));
+      case 'level-asc': return copy.sort((a, b) => a.level - b.level);
+      case 'level-desc': return copy.sort((a, b) => b.level - a.level);
+      default: return copy;
+    }
+  }
+  function allTypesInRoster(list) { return [...new Set(list.map(p => p.type))].sort(); }
+  /* ============================================================
+     VIEW ROUTER & LOGIC
+     ============================================================ */
+  let pendingDeleteId = null;
+  function showView(name, editId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    document.getElementById('nav-roster').classList.toggle('active', name === 'roster');
+    document.getElementById('nav-add').classList.toggle('active', name === 'add');
+    if (name === 'roster') {
+      populateTypeFilter();
+      renderRoster();
+    } else if (name === 'add') {
+      resetAddForm();
+    } else if (name === 'edit') {
+      loadEditForm(editId);
+    }
+    window.scrollTo(0, 0);
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function populateTypeFilter() {
+    const select = document.getElementById('type-filter');
+    const current = select.value;
+    const types = allTypesInRoster(loadRoster());
+    select.innerHTML = '<option value="All">All types</option>' +
+      types.map(t => `<option value="${t}">${t}</option>`).join('');
+    if ([...select.options].some(o => o.value === current)) select.value = current;
+  }
+  function renderRoster() {
+    const roster = loadRoster();
+    const query = document.getElementById('search-input').value;
+    const type = document.getElementById('type-filter').value;
+    const sortMode = document.getElementById('sort-select').value;
+    let result = searchByName(roster, query);
+    result = filterByType(result, type);
+    result = sortRoster(result, sortMode);
+    const grid = document.getElementById('roster-grid');
+    const empty = document.getElementById('empty-state');
+    const strip = document.getElementById('result-strip');
+    strip.innerHTML = `Showing <strong>${result.length}</strong> of <strong>${roster.length}</strong> Pokémon`;
+    if (result.length === 0) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+    grid.innerHTML = result.map(p => `
+      <article class="poke-card">
+        <span class="type-tab" style="background:${typeColor(p.type)}"></span>
+        <div class="card-media">
+          <span class="level-chip">LV ${p.level}</span>
+          <img src="${p.img}" alt="${p.name}" onerror="this.src='${FALLBACK_IMG}'">
+        </div>
+        <div class="card-body">
+          <h3 class="poke-name">${p.name}</h3>
+          <span class="type-badge" style="background:${typeColor(p.type)}">${p.type}</span>
+          <div class="card-stat-row"><span>ID</span><span>#${String(p.id).padStart(3,'0')}</span></div>
+          <div class="card-foot">
+            <button class="btn btn-teal btn-sm" type="button" onclick="showView('edit', ${p.id})">Edit</button>
+            <button class="btn btn-danger btn-sm" type="button" onclick="askDelete(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        </div>
+      </article>
+    `).join('');
+  }
+  function askDelete(id, name) {
+    pendingDeleteId = id;
+    document.getElementById('delete-modal-text').textContent = `${name} will be removed from the roster permanently.`;
+    document.getElementById('delete-modal').classList.add('show');
+  }
+  document.getElementById('cancel-delete-btn').addEventListener('click', () => {
+    pendingDeleteId = null;
+    document.getElementById('delete-modal').classList.remove('show');
+  });
+  document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+    if (pendingDeleteId != null) {
+      deletePokemon(pendingDeleteId);
+      showToast('Pokémon deleted from roster.');
+    }
+    pendingDeleteId = null;
+    document.getElementById('delete-modal').classList.remove('show');
+    populateTypeFilter();
+    renderRoster();
+  });
+  document.getElementById('search-input').addEventListener('input', renderRoster);
+  document.getElementById('type-filter').addEventListener('change', renderRoster);
+  document.getElementById('sort-select').addEventListener('change', renderRoster);
+  document.getElementById('reset-roster-btn').addEventListener('click', () => {
+    resetRoster();
+    populateTypeFilter();
+    renderRoster();
+    showToast('Roster reset to default Pokémon.');
+  });
+  /* Add Form */
+  function resetAddForm() {
+    document.getElementById('add-form').reset();
+    ['add-row-name','add-row-type','add-row-level'].forEach(id => document.getElementById(id).classList.remove('invalid'));
+    updateAddPreview();
+  }
+  function updateAddPreview() {
+    const name = document.getElementById('add-name-input').value.trim();
+    const type = document.getElementById('add-type-input').value;
+    const level = document.getElementById('add-level-input').value;
+    const img = document.getElementById('add-img-input').value.trim();
+    document.getElementById('add-preview-name').textContent = name || 'Unnamed Pokémon';
+    document.getElementById('add-preview-meta').textContent = `Type: ${type || '—'} · Level: ${level || '—'}`;
+    document.getElementById('add-preview-img').src = img || FALLBACK_IMG;
+  }
+  ['add-name-input','add-type-input','add-level-input','add-img-input'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateAddPreview);
+    document.getElementById(id).addEventListener('change', updateAddPreview);
+  });
+  document.getElementById('add-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('add-name-input').value.trim();
+    const type = document.getElementById('add-type-input').value;
+    const levelRaw = document.getElementById('add-level-input').value;
+    const level = Number(levelRaw);
+    const img = document.getElementById('add-img-input').value.trim() || FALLBACK_IMG;
+    let valid = true;
+    const nameInvalid = !name, typeInvalid = !type, levelOk = levelRaw !== '' && level >= 1 && level <= 100;
+    document.getElementById('add-row-name').classList.toggle('invalid', nameInvalid);
+    document.getElementById('add-row-type').classList.toggle('invalid', typeInvalid);
+    document.getElementById('add-row-level').classList.toggle('invalid', !levelOk);
+    if (nameInvalid || typeInvalid || !levelOk) return;
+    addPokemon({ name, type, level, img });
+    showToast(`${name} added to the roster!`);
+    showView('roster');
+  });
+  /* Edit Form */
+  function loadEditForm(id) {
+    const existing = getPokemonById(id);
+    const shell = document.getElementById('edit-form-shell');
+    const notFound = document.getElementById('edit-not-found');
+    if (!existing) {
+      shell.style.display = 'none';
+      notFound.style.display = 'block';
+      return;
+    }
+    shell.style.display = 'block';
+    notFound.style.display = 'none';
+    document.getElementById('edit-id-input').value = existing.id;
+    document.getElementById('edit-name-input').value = existing.name;
+    document.getElementById('edit-type-input').value = existing.type;
+    document.getElementById('edit-level-input').value = existing.level;
+    document.getElementById('edit-img-input').value = existing.img;
+    updateEditPreview();
+  }
+  function updateEditPreview() {
+    const name = document.getElementById('edit-name-input').value.trim();
+    const type = document.getElementById('edit-type-input').value;
+    const level = document.getElementById('edit-level-input').value;
+    const img = document.getElementById('edit-img-input').value.trim();
+    document.getElementById('edit-preview-name').textContent = name || 'Unnamed Pokémon';
+    document.getElementById('edit-preview-meta').textContent = `Type: ${type || '—'} · Level: ${level || '—'}`;
+    document.getElementById('edit-preview-img').src = img || FALLBACK_IMG;
+  }
+  ['edit-name-input','edit-type-input','edit-level-input','edit-img-input'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateEditPreview);
+  });
+  document.getElementById('edit-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('edit-id-input').value;
+    const name = document.getElementById('edit-name-input').value.trim();
+    const type = document.getElementById('edit-type-input').value;
+    const levelRaw = document.getElementById('edit-level-input').value;
+    const level = Number(levelRaw);
+    const img = document.getElementById('edit-img-input').value.trim() || FALLBACK_IMG;
+    const nameInvalid = !name, typeInvalid = !type, levelOk = levelRaw !== '' && level >= 1 && level <= 100;
+    document.getElementById('edit-row-name').classList.toggle('invalid', nameInvalid);
+    document.getElementById('edit-row-type').classList.toggle('invalid', typeInvalid);
+    document.getElementById('edit-row-level').classList.toggle('invalid', !levelOk);
+    if (nameInvalid || typeInvalid || !levelOk) return;
+    updatePokemon(id, { name, type, level, img });
+    showToast(`${name} updated.`);
+    showView('roster');
+  });
+  /* Boot */
+  populateTypeFilter();
+  renderRoster();
+  </script>
+</body>
+</html>
