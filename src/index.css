@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600;
+  }
+}
+
+/* Fire particles effect */
+@keyframes fireParticles {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100vh) scale(0.2) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.fire-particle {
+  position: fixed;
+  bottom: -20px;
+  background: radial-gradient(circle, rgba(255,165,0,0.8) 0%, rgba(255,69,0,0.6) 40%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(4px);
+  animation: fireParticles linear infinite;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fire-glow {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: linear-gradient(to top, rgba(255, 69, 0, 0.4) 0%, transparent 100%);
+  mix-blend-mode: screen;
+  animation: flicker 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Holographic animated energy aura for plates (cards) */
+@keyframes holoPlateAura {
+  0% {
+    border-color: #ffb700;
+    box-shadow: 
+      inset 0 0 0 1px #ffb700,
+      0 0 8px #ff7300, 
+      0 0 15px rgba(255, 140, 0, 0.6);
+  }
+  50% {
+    border-color: #ffd700;
+    box-shadow: 
+      inset 0 0 0 1px #ffd700,
+      0 0 15px #ff4500, 
+      0 0 25px rgba(255, 165, 0, 0.8);
+  }
+  100% {
+    border-color: #ffb700;
+    box-shadow: 
+      inset 0 0 0 1px #ffb700,
+      0 0 8px #ff7300, 
+      0 0 15px rgba(255, 140, 0, 0.6);
+  }
+}
+
+.hover-holo-plate:hover {
+  animation: holoPlateAura 2s infinite ease-in-out !important;
+}
