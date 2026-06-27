@@ -1,0 +1,1160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranger Quest Board</title>
+<style>
+/* ============================================================
+   RANGER QUEST BOARD — DESIGN SYSTEM
+   A bounty board pinned with quest notices: forest-night chrome,
+   torn-edge parchment cards, wax-seal status badges, XP-style bars.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@500;700&display=swap');
+
+:root {
+  --forest-deep:   #1c2a22;
+  --forest-mid:    #25382c;
+  --forest-light:  #2f4536;
+  --parchment:     #f0e6c8;
+  --parchment-2:   #e6d8ad;
+  --ink:           #2c2515;
+  --ink-soft:      #6d6244;
+  --gold:          #d4a72c;
+  --gold-dark:     #a87f1c;
+  --go-green:      #4a9b6e;
+  --go-green-dark: #357850;
+  --pending-blue:  #5b7fa6;
+  --pending-dark:  #44607f;
+  --done-purple:   #9d4f8f;
+  --done-dark:     #7a3a6e;
+  --line:          rgba(240, 230, 200, 0.14);
+  --radius-card:   14px;
+  --radius-sm:     9px;
+  --shadow-deep:   0 18px 38px rgba(8, 14, 10, 0.5);
+  --font-display:  'Archivo Black', sans-serif;
+  --font-body:     'Inter', sans-serif;
+  --font-mono:     'Space Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--parchment);
+
+  background:
+    linear-gradient(
+      rgba(0,0,0,0.45),
+      rgba(0,0,0,0.45)
+    ),
+    url("poke syam.jpg");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+/* Fire Sparks Effect */
+
+/* BIG FIRE SPARKS */
+
+
+.spark{
+    position: fixed;
+    bottom: -10px;
+    width: 2px;
+    height: 6px;
+    background: linear-gradient(
+        to top,
+        #ff4500,
+        #ffae00,
+        rgba(255,255,150,0)
+    );
+
+    border-radius: 1px;
+
+    box-shadow:
+        0 0 3px #ff4500,
+        0 0 6px #ffae00;
+
+    pointer-events: none;
+    z-index: 9999;
+
+    animation: rise linear forwards;
+}
+@keyframes rise{
+    0%{
+        opacity: 0;
+        transform:
+            translateY(0)
+            translateX(0)
+            rotate(0deg)
+            scale(0.5);
+    }
+
+    10%{
+        opacity: 1;
+    }
+
+    100%{
+        opacity: 0;
+        transform:
+            translateY(-100vh)
+            translateX(var(--drift))
+            rotate(var(--spin))
+            scale(1);
+    }
+}
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 28px;
+  background: rgba(0,0,0,0.8);
+backdrop-filter: blur(8px);
+  border-bottom: 4px solid var(--gold);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  box-shadow: var(--shadow-deep);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.05em;
+}
+
+/* The Pokemon Style text effect */
+.pokemon-style-text {
+  font-size: 1.4rem;
+  color: #ffde00; /* Pokémon Yellow */
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-shadow: 
+    -2px -2px 0 #3b4cca,  2px -2px 0 #3b4cca, -2px  2px 0 #3b4cca,  2px  2px 0 #3b4cca,
+    -1px -3px 0 #3b4cca,  1px -3px 0 #3b4cca, -1px  3px 0 #3b4cca,  1px  3px 0 #3b4cca,
+    -3px -1px 0 #3b4cca,  3px -1px 0 #3b4cca, -3px  1px 0 #3b4cca,  3px  1px 0 #3b4cca,
+     3px  3px 0 #2a3593,  4px  4px 0 #2a3593,  5px  5px 0 rgba(0,0,0,0.4);
+}
+
+.brand-badge {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: conic-gradient(from 90deg, #fff 0deg 180deg, var(--ink) 180deg 360deg);
+  border: 3px solid var(--ink);
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.25);
+}
+.brand-badge::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 10px; height: 10px;
+  background: var(--parchment);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+}
+
+.brand small {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+nav.main-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+
+nav.main-nav button {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--parchment-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+nav.main-nav button:hover { border-color: var(--gold); color: var(--gold); }
+nav.main-nav button.active { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+
+/* ---------- Page shell ---------- */
+
+main.page { max-width: 1150px; margin: 0 auto; padding: 36px 26px 80px; }
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  margin: 0 0 26px;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Control bar ---------- */
+
+.control-bar {
+  background: rgba(0,0,0,0.65);
+backdrop-filter: blur(10px);
+  border-radius: var(--radius-card);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-deep);
+}
+@media (max-width: 700px) { .control-bar { grid-template-columns: 1fr; } }
+
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--parchment-2);
+  opacity: 0.85;
+  margin-bottom: 7px;
+}
+
+input[type="text"], select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  background: var(--parchment);
+  color: var(--ink);
+  outline: none;
+}
+input::placeholder { color: var(--ink-soft); opacity: 0.7; }
+input:focus, select:focus { border-color: var(--gold); }
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--forest-deep) 50%), linear-gradient(135deg, var(--forest-deep) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.status-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--parchment-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip:hover { border-color: var(--gold); color: var(--gold); }
+.chip.active { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 11px 18px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-green { background: var(--go-green); color: #f1fff6; box-shadow: 0 6px 14px rgba(74,155,110,0.35); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); }
+
+.btn-gold { background: var(--gold); color: var(--ink); box-shadow: 0 6px 14px rgba(212,167,44,0.35); }
+.btn-gold:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-purple { background: var(--done-purple); color: #fdf1fb; box-shadow: 0 6px 14px rgba(157,79,143,0.35); }
+.btn-purple:hover:not(:disabled) { filter: brightness(1.1); }
+
+.btn-ghost { background: transparent; border: 1.5px solid var(--line); color: var(--parchment-2); }
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+.btn-sm { padding: 7px 12px; font-size: 0.68rem; }
+
+.actions-row { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.result-strip { font-family: var(--font-mono); font-size: 0.78rem; color: var(--parchment-2); opacity: 0.75; margin-bottom: 16px; }
+.result-strip strong { color: var(--gold); opacity: 1; }
+
+/* ---------- Quest cards ---------- */
+
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+.quest-card {
+  position: relative;
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-deep);
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.quest-card:hover { transform: translateY(-3px); box-shadow: 0 22px 44px rgba(0,0,0,0.5); }
+
+.quest-card .seal {
+  position: absolute;
+  top: -10px; right: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.quest-card .quest-num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+.quest-card h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.3;
+  margin: 0;
+  text-transform: none;
+}
+.quest-card .quest-reward {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+/* ---------- Progress bar ---------- */
+
+.progress-track {
+  width: 100%;
+  height: 14px;
+  background: rgba(44,37,21,0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--go-green-dark), var(--go-green));
+  border-radius: 999px;
+  transition: width 0.35s ease;
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,0.18) 0 6px, transparent 6px 12px);
+}
+.progress-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  display: flex;
+  justify-content: space-between;
+}
+
+.card-foot { margin-top: auto; display: flex; gap: 8px; padding-top: 6px; }
+.card-foot .btn { flex: 1; justify-content: center; }
+
+/* ---------- Mission list rows (Active Missions page) ---------- */
+
+.mission-row {
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-deep);
+  padding: 16px 20px;
+  margin-bottom: 14px;
+}
+.mission-row .mission-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: 10px; }
+.mission-row h3 { font-family: var(--font-display); font-size: 0.95rem; margin: 0; }
+.mission-row .mission-pct { font-family: var(--font-mono); font-weight: 700; color: var(--go-green-dark); }
+
+/* ---------- Completed list rows ---------- */
+
+.completed-row {
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-deep);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.completed-row .check { font-size: 1.3rem; flex-shrink: 0; }
+.completed-row .c-info { flex: 1; }
+.completed-row h3 { font-family: var(--font-display); font-size: 0.92rem; margin: 0 0 4px; }
+.completed-row .c-sub { font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-soft); }
+.completed-row .c-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+/* ---------- Quest details ---------- */
+
+.detail-shell {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 30px;
+  box-shadow: var(--shadow-deep);
+}
+.detail-shell .seal-row { display: flex; justify-content: flex-end; margin-bottom: -6px; }
+.detail-shell h2 { font-family: var(--font-display); font-size: 1.5rem; margin: 4px 0 14px; }
+.detail-shell .detail-desc-label,
+.detail-shell .detail-progress-label,
+.detail-shell .detail-reward-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.detail-shell .detail-block { margin-bottom: 20px; }
+.detail-shell .detail-desc-text { font-size: 0.95rem; line-height: 1.6; }
+.detail-shell .detail-reward-value {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--gold-dark);
+}
+.detail-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.detail-actions .btn { flex: 1; min-width: 130px; justify-content: center; }
+
+/* ---------- Rewards page ---------- */
+
+.rewards-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+.reward-tile {
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 22px;
+  text-align: center;
+  box-shadow: var(--shadow-deep);
+}
+.reward-tile .r-icon { font-size: 2rem; margin-bottom: 8px; }
+.reward-tile .r-value { font-family: var(--font-display); font-size: 1.6rem; }
+.reward-tile .r-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+.unclaimed-list { display: flex; flex-direction: column; gap: 12px; }
+.unclaimed-row {
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-deep);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.unclaimed-row .u-info { flex: 1; }
+.unclaimed-row h3 { font-family: var(--font-display); font-size: 0.92rem; margin: 0 0 4px; }
+.unclaimed-row .u-reward { font-family: var(--font-mono); font-size: 0.78rem; color: var(--gold-dark); font-weight: 700; }
+
+/* ---------- Empty state ---------- */
+
+.empty-state {
+  text-align: center;
+  padding: 64px 20px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-card);
+}
+.empty-state .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.empty-state h3 { font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 8px; }
+.empty-state p { margin: 0 0 18px; color: var(--parchment-2); opacity: 0.8; }
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  bottom: 26px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--go-green-dark);
+  color: #f1fff6;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 13px 22px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-deep);
+  opacity: 0; pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Footer ---------- */
+
+footer.site-footer {
+  text-align: center;
+  padding: 30px 20px 40px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: rgba(240,230,200,0.32);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 600px) {
+  .site-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  main.page { padding: 24px 16px 60px; }
+  .quest-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-badge"></span>
+      <div>
+        <span class="pokemon-style-text">POKEMON_NEXUS</span>
+        <small>Ranger Mission Log</small>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <button type="button" id="nav-dashboard" class="active" onclick="showView('dashboard')">Dashboard</button>
+      <button type="button" id="nav-missions" onclick="showView('missions')">Active Missions</button>
+      <button type="button" id="nav-completed" onclick="showView('completed')">Completed</button>
+      <button type="button" id="nav-rewards" onclick="showView('rewards')">Rewards</button>
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="view active" id="view-dashboard">
+      <p class="page-kicker">// quest_dashboard</p>
+      <h1 class="page-title">📜 Quest Dashboard</h1>
+
+      <div class="control-bar">
+        <div class="form-row">
+          <label class="field-label" for="search-input">Search quests</label>
+          <input type="text" id="search-input" placeholder="e.g. Catch 5 Pokémon">
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="sort-select">Sort by</label>
+          <select id="sort-select">
+            <option value="default">Default order</option>
+            <option value="title-asc">Title (A–Z)</option>
+            <option value="progress-desc">Progress (Most → Least)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="status-chips" id="status-chips"></div>
+
+      <p class="result-strip" id="result-strip"></p>
+
+      <div class="quest-grid" id="quest-grid"></div>
+
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <div class="eyebrow">// no_quests</div>
+        <h3>No quests found</h3>
+        <p>Try a different search or clear the status filter.</p>
+      </div>
+    </section>
+
+    <section class="view" id="view-details">
+      <p class="page-kicker">// quest_record</p>
+      <h1 class="page-title">Quest Details</h1>
+
+      <div class="detail-shell" id="details-shell">
+        <div class="seal-row"><span class="seal" id="details-seal">PENDING</span></div>
+        <h2 id="details-title">Quest title</h2>
+
+        <div class="detail-block">
+          <div class="detail-desc-label">Description</div>
+          <div class="detail-desc-text" id="details-description">—</div>
+        </div>
+
+        <div class="detail-block">
+          <div class="detail-progress-label">Progress</div>
+          <div class="progress-label">
+            <span id="details-progress-text">0 / 0</span>
+            <span id="details-progress-pct">0%</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="details-progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <div class="detail-block">
+          <div class="detail-reward-label">Reward</div>
+          <div class="detail-reward-value" id="details-reward">—</div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn btn-green" type="button" id="details-start-btn">▶ Start Quest</button>
+          <button class="btn btn-gold" type="button" id="details-progress-btn">+1 Progress</button>
+          <button class="btn btn-purple" type="button" id="details-claim-btn">🎁 Claim Reward</button>
+          <button class="btn btn-ghost" type="button" onclick="showView('dashboard')">Back</button>
+        </div>
+      </div>
+
+      <div class="empty-state" id="details-not-found" style="display:none;">
+        <div class="eyebrow">// not_found</div>
+        <h3>This quest doesn't exist</h3>
+        <p>It may have been removed from the board.</p>
+        <button class="btn btn-gold" type="button" onclick="showView('dashboard')">Back to Dashboard</button>
+      </div>
+    </section>
+
+    <section class="view" id="view-missions">
+      <p class="page-kicker">// in_progress</p>
+      <h1 class="page-title">🎯 Active Missions</h1>
+
+      <div id="missions-list"></div>
+
+      <div class="empty-state" id="missions-empty" style="display:none;">
+        <div class="eyebrow">// no_active_missions</div>
+        <h3>No active missions</h3>
+        <p>Start a quest from the dashboard to see it tracked here.</p>
+        <button class="btn btn-gold" type="button" onclick="showView('dashboard')">Browse Quests</button>
+      </div>
+    </section>
+
+    <section class="view" id="view-completed">
+      <p class="page-kicker">// quest_history</p>
+      <h1 class="page-title">🏆 Completed Quests</h1>
+
+      <div id="completed-list"></div>
+
+      <div class="empty-state" id="completed-empty" style="display:none;">
+        <div class="eyebrow">// no_completed_quests</div>
+        <h3>No completed quests yet</h3>
+        <p>Finish a mission and it will show up here.</p>
+        <button class="btn btn-gold" type="button" onclick="showView('dashboard')">Browse Quests</button>
+      </div>
+    </section>
+
+    <section class="view" id="view-rewards">
+      <p class="page-kicker">// trainer_wallet</p>
+      <h1 class="page-title">🎁 Rewards</h1>
+
+      <div class="rewards-summary">
+        <div class="reward-tile">
+          <div class="r-icon">🪙</div>
+          <div class="r-value" id="rewards-coins">0</div>
+          <div class="r-label">Coins Collected</div>
+        </div>
+        <div class="reward-tile">
+          <div class="r-icon">✨</div>
+          <div class="r-value" id="rewards-xp">0</div>
+          <div class="r-label">XP Collected</div>
+        </div>
+        <div class="reward-tile">
+          <div class="r-icon">🍬</div>
+          <div class="r-value" id="rewards-items">0</div>
+          <div class="r-label">Items Collected</div>
+        </div>
+      </div>
+
+      <h3 style="font-family:var(--font-display); font-size:1rem; margin: 0 0 14px;">Unclaimed Rewards</h3>
+      <div class="unclaimed-list" id="unclaimed-list"></div>
+
+      <div class="empty-state" id="rewards-empty" style="display:none;">
+        <div class="eyebrow">// nothing_to_claim</div>
+        <h3>No rewards waiting</h3>
+        <p>Complete a quest to unlock its reward here.</p>
+        <button class="btn btn-gold" type="button" onclick="showView('dashboard')">Browse Quests</button>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="site-footer">RANGER QUEST BOARD — PROGRESS STORED LOCALLY ON THIS DEVICE</footer>
+
+  <script>
+  /* ============================================================
+     DATA LAYER
+     ============================================================ */
+
+  const STORAGE_KEY = 'rangerQuestBoard';
+
+  // status: 'Pending' -> 'Active' -> 'Completed' -> 'Claimed'
+  const PRESET_QUESTS = [
+    { id: 1, title: 'Catch 5 Pokémon',     description: 'Catch any 5 Pokémon to complete this quest.',          target: 5,  progress: 0, status: 'Pending', reward: { coins: 100, xp: 0,  item: '' } },
+    { id: 2, title: 'Win 3 Battles',        description: 'Win 3 battles against wild Pokémon or trainers.',      target: 3,  progress: 0, status: 'Pending', reward: { coins: 200, xp: 50, item: '' } },
+    { id: 3, title: 'Explore Kanto Region', description: 'Visit every town in the Kanto region.',                 target: 8,  progress: 0, status: 'Pending', reward: { coins: 0,   xp: 0,  item: 'Rare Candy' } },
+    { id: 4, title: 'Feed 3 Berries',       description: 'Feed berries to your Pokémon to restore their health.', target: 3,  progress: 3, status: 'Active',  reward: { coins: 50,  xp: 20, item: '' } },
+    { id: 5, title: 'Defeat a Gym Leader',  description: 'Challenge and defeat any Gym Leader.',                  target: 1,  progress: 1, status: 'Active',  reward: { coins: 300, xp: 100,item: 'TM Strength' } },
+    { id: 6, title: 'Hatch an Egg',         description: 'Hatch a Pokémon Egg by walking with your team.',        target: 1,  progress: 1, status: 'Completed', reward: { coins: 80,  xp: 40, item: '' } }
+  ];
+
+  function loadQuests() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { saveQuests(PRESET_QUESTS); return [...PRESET_QUESTS]; }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      throw new Error('bad shape');
+    } catch (e) {
+      saveQuests(PRESET_QUESTS);
+      return [...PRESET_QUESTS];
+    }
+  }
+  function saveQuests(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+  function getQuestById(id) { return loadQuests().find(q => q.id === Number(id)); }
+
+  function startQuest(id) {
+    const list = loadQuests();
+    const idx = list.findIndex(q => q.id === Number(id));
+    if (idx === -1) return null;
+    if (list[idx].status === 'Pending') list[idx].status = 'Active';
+    saveQuests(list);
+    return list[idx];
+  }
+
+  function advanceQuest(id) {
+    const list = loadQuests();
+    const idx = list.findIndex(q => q.id === Number(id));
+    if (idx === -1) return null;
+    const q = list[idx];
+    if (q.status !== 'Active') return q;
+    q.progress = Math.min(q.target, q.progress + 1);
+    if (q.progress >= q.target) q.status = 'Completed';
+    saveQuests(list);
+    return q;
+  }
+
+  function claimReward(id) {
+    const list = loadQuests();
+    const idx = list.findIndex(q => q.id === Number(id));
+    if (idx === -1) return null;
+    if (list[idx].status !== 'Completed') return list[idx];
+    list[idx].status = 'Claimed';
+    saveQuests(list);
+    return list[idx];
+  }
+
+  function searchQuests(list, query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(qq => qq.title.toLowerCase().includes(q));
+  }
+  function filterByStatus(list, status) {
+    if (!status || status === 'All') return list;
+    if (status === 'Completed') return list.filter(q => q.status === 'Completed' || q.status === 'Claimed');
+    return list.filter(q => q.status === status);
+  }
+  function sortQuests(list, mode) {
+    const copy = [...list];
+    switch (mode) {
+      case 'title-asc':      return copy.sort((a,b) => a.title.localeCompare(b.title));
+      case 'progress-desc':  return copy.sort((a,b) => (b.progress/b.target) - (a.progress/a.target));
+      default:               return copy;
+    }
+  }
+
+  function statusMeta(status) {
+    switch (status) {
+      case 'Active':    return { color: 'var(--go-green-dark)', label: 'ACTIVE' };
+      case 'Completed': return { color: 'var(--done-purple)',   label: 'COMPLETED' };
+      case 'Claimed':   return { color: 'var(--done-dark)',     label: 'CLAIMED' };
+      default:           return { color: 'var(--pending-dark)', label: 'PENDING' };
+    }
+  }
+
+  function rewardSummary(reward) {
+    const parts = [];
+    if (reward.coins) parts.push(`🪙 ${reward.coins} Coins`);
+    if (reward.xp) parts.push(`✨ ${reward.xp} XP`);
+    if (reward.item) parts.push(`🍬 ${reward.item}`);
+    return parts.length ? parts.join(' · ') : 'No reward set';
+  }
+
+  /* ============================================================
+     VIEW ROUTER
+     ============================================================ */
+
+  let activeStatusFilter = 'All';
+  let currentDetailsId = null;
+
+  function showView(name, questId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+
+    ['dashboard','missions','completed','rewards'].forEach(n => {
+      const btn = document.getElementById('nav-' + n);
+      if (btn) btn.classList.toggle('active', n === name);
+    });
+
+    if (name === 'dashboard') { renderStatusChips(); renderDashboard(); }
+    else if (name === 'details') loadDetails(questId);
+    else if (name === 'missions') renderMissions();
+    else if (name === 'completed') renderCompleted();
+    else if (name === 'rewards') renderRewards();
+
+    window.scrollTo(0, 0);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  /* ---------- Dashboard ---------- */
+
+  function renderStatusChips() {
+    const wrap = document.getElementById('status-chips');
+    const options = ['All', 'Pending', 'Active', 'Completed'];
+    wrap.innerHTML = options.map(s =>
+      `<button type="button" class="chip ${activeStatusFilter === s ? 'active' : ''}" onclick="setStatusFilter('${s}')">${s}</button>`
+    ).join('');
+  }
+
+  function setStatusFilter(status) {
+    activeStatusFilter = status;
+    renderStatusChips();
+    renderDashboard();
+  }
+
+  function renderDashboard() {
+    const all = loadQuests();
+    const query = document.getElementById('search-input').value;
+    const sortMode = document.getElementById('sort-select').value;
+
+    let result = searchQuests(all, query);
+    result = filterByStatus(result, activeStatusFilter);
+    result = sortQuests(result, sortMode);
+
+    const grid = document.getElementById('quest-grid');
+    const empty = document.getElementById('empty-state');
+    const strip = document.getElementById('result-strip');
+
+    strip.innerHTML = `Showing <strong>${result.length}</strong> of <strong>${all.length}</strong> quests`;
+
+    if (result.length === 0) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+
+    grid.innerHTML = result.map((q, i) => {
+      const meta = statusMeta(q.status);
+      const pct = Math.round((q.progress / q.target) * 100);
+      let actionBtn = '';
+      if (q.status === 'Pending') {
+        actionBtn = `<button class="btn btn-green btn-sm" type="button" onclick="quickStart(${q.id})">▶ Start Quest</button>`;
+      } else if (q.status === 'Active') {
+        actionBtn = `<button class="btn btn-gold btn-sm" type="button" onclick="quickAdvance(${q.id})">+1 Progress</button>`;
+      } else if (q.status === 'Completed') {
+        actionBtn = `<button class="btn btn-purple btn-sm" type="button" onclick="quickClaim(${q.id})">🎁 Claim</button>`;
+      } else {
+        actionBtn = `<span style="font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-soft);">Reward Collected</span>`;
+      }
+
+      return `
+        <article class="quest-card">
+          <span class="seal" style="background:${meta.color}">${meta.label}</span>
+          <span class="quest-num">QUEST #${i + 1}</span>
+          <h3>${q.title}</h3>
+          <div class="progress-label"><span>${q.progress} / ${q.target}</span><span>${pct}%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span class="quest-reward">${rewardSummary(q.reward)}</span>
+          <div class="card-foot">
+            ${actionBtn}
+            <button class="btn btn-ghost btn-sm" type="button" onclick="showView('details', ${q.id})">View</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function quickStart(id) { startQuest(id); renderDashboard(); showToast('Quest started! Track it in Active Missions.'); }
+  function quickAdvance(id) {
+    const q = advanceQuest(id);
+    renderDashboard();
+    showToast(q.status === 'Completed' ? `${q.title} complete! Claim your reward.` : `Progress: ${q.progress}/${q.target}`);
+  }
+  function quickClaim(id) {
+    const q = claimReward(id);
+    renderDashboard();
+    showToast(`Reward claimed for ${q.title}!`);
+  }
+
+  document.getElementById('search-input').addEventListener('input', renderDashboard);
+  document.getElementById('sort-select').addEventListener('change', renderDashboard);
+
+  /* ---------- Quest details ---------- */
+
+  function loadDetails(id) {
+    currentDetailsId = id;
+    const q = getQuestById(id);
+    const shell = document.getElementById('details-shell');
+    const notFound = document.getElementById('details-not-found');
+
+    if (!q) {
+      shell.style.display = 'none';
+      notFound.style.display = 'block';
+      return;
+    }
+    shell.style.display = 'block';
+    notFound.style.display = 'none';
+    renderDetailsContent(q);
+  }
+
+  function renderDetailsContent(q) {
+    const meta = statusMeta(q.status);
+    const pct = Math.round((q.progress / q.target) * 100);
+
+    document.getElementById('details-seal').textContent = meta.label;
+    document.getElementById('details-seal').style.background = meta.color;
+    document.getElementById('details-title').textContent = q.title;
+    document.getElementById('details-description').textContent = q.description;
+    document.getElementById('details-progress-text').textContent = `${q.progress} / ${q.target}`;
+    document.getElementById('details-progress-pct').textContent = `${pct}%`;
+    document.getElementById('details-progress-fill').style.width = `${pct}%`;
+    document.getElementById('details-reward').textContent = rewardSummary(q.reward);
+
+    const startBtn = document.getElementById('details-start-btn');
+    const progressBtn = document.getElementById('details-progress-btn');
+    const claimBtn = document.getElementById('details-claim-btn');
+
+    startBtn.style.display = (q.status === 'Pending') ? 'inline-flex' : 'none';
+    progressBtn.style.display = (q.status === 'Active') ? 'inline-flex' : 'none';
+    claimBtn.style.display = (q.status === 'Completed') ? 'inline-flex' : 'none';
+  }
+
+  document.getElementById('details-start-btn').addEventListener('click', () => {
+    if (currentDetailsId) { quickStart(currentDetailsId); loadDetails(currentDetailsId); }
+  });
+  document.getElementById('details-progress-btn').addEventListener('click', () => {
+    if (currentDetailsId) { quickAdvance(currentDetailsId); loadDetails(currentDetailsId); }
+  });
+  document.getElementById('details-claim-btn').addEventListener('click', () => {
+    if (currentDetailsId) { quickClaim(currentDetailsId); loadDetails(currentDetailsId); }
+  });
+
+  /* ---------- Active Missions ---------- */
+
+  function renderMissions() {
+    const active = loadQuests().filter(q => q.status === 'Active');
+    const list = document.getElementById('missions-list');
+    const empty = document.getElementById('missions-empty');
+
+    if (active.length === 0) {
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    list.style.display = 'block';
+    empty.style.display = 'none';
+
+    list.innerHTML = active.map(q => {
+      const pct = Math.round((q.progress / q.target) * 100);
+      return `
+        <div class="mission-row">
+          <div class="mission-top">
+            <h3>${q.title}</h3>
+            <span class="mission-pct">${pct}%</span>
+          </div>
+          <div class="progress-label" style="margin-bottom:6px;"><span>${q.progress} / ${q.target}</span></div>
+          <div class="progress-track" style="margin-bottom:12px;"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <button class="btn btn-gold btn-sm" type="button" onclick="quickAdvance(${q.id}); renderMissions();">+1 Progress</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ---------- Completed Quests ---------- */
+
+  function renderCompleted() {
+    const completed = loadQuests().filter(q => q.status === 'Completed' || q.status === 'Claimed');
+    const list = document.getElementById('completed-list');
+    const empty = document.getElementById('completed-empty');
+
+    if (completed.length === 0) {
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    list.style.display = 'block';
+    empty.style.display = 'none';
+
+    list.innerHTML = completed.map(q => {
+      const meta = statusMeta(q.status);
+      return `
+        <div class="completed-row">
+          <div class="check">✅</div>
+          <div class="c-info">
+            <h3>${q.title}</h3>
+            <div class="c-sub">${rewardSummary(q.reward)}</div>
+          </div>
+          <span class="c-tag" style="background:${meta.color}; color:#fff">${meta.label}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ---------- Rewards Page ---------- */
+
+  function renderRewards() {
+    const all = loadQuests();
+    
+    let coins = 0;
+    let xp = 0;
+    let items = 0;
+
+    all.forEach(q => {
+      if (q.status === 'Claimed') {
+        if (q.reward.coins) coins += q.reward.coins;
+        if (q.reward.xp) xp += q.reward.xp;
+        if (q.reward.item) items += 1;
+      }
+    });
+
+    document.getElementById('rewards-coins').textContent = coins;
+    document.getElementById('rewards-xp').textContent = xp;
+    document.getElementById('rewards-items').textContent = items;
+
+    const unclaimed = all.filter(q => q.status === 'Completed');
+    const list = document.getElementById('unclaimed-list');
+    const empty = document.getElementById('rewards-empty');
+
+    if (unclaimed.length === 0) {
+      list.style.display = 'none';
+      if(coins === 0 && xp === 0 && items === 0) {
+         empty.style.display = 'block';
+      } else {
+         empty.style.display = 'none';
+      }
+      return;
+    }
+    list.style.display = 'flex';
+    empty.style.display = 'none';
+
+    list.innerHTML = unclaimed.map(q => `
+      <div class="unclaimed-row">
+        <div class="u-info">
+          <h3>${q.title}</h3>
+          <div class="u-reward">${rewardSummary(q.reward)}</div>
+        </div>
+        <button class="btn btn-purple btn-sm" type="button" onclick="quickClaim(${q.id}); renderRewards();">🎁 Claim</button>
+      </div>
+    `).join('');
+  }
+
+  // Initialize view
+  renderStatusChips();
+  renderDashboard();
+  
+
+function createSpark(){
+
+    const spark = document.createElement("div");
+    spark.classList.add("spark");
+
+    spark.style.left =
+        Math.random() * window.innerWidth + "px";
+
+    spark.style.height =
+        (4 + Math.random() * 5) + "px";
+
+    spark.style.width =
+        (1 + Math.random()) + "px";
+
+    spark.style.setProperty(
+        "--drift",
+        (Math.random() * 80 - 40) + "px"
+    );
+
+    spark.style.setProperty(
+        "--spin",
+        (Math.random() * 60 - 30) + "deg"
+    );
+
+    spark.style.animationDuration =
+        (1.5 + Math.random() * 1.5) + "s";
+
+    document.body.appendChild(spark);
+
+    setTimeout(() => {
+        spark.remove();
+    }, 3000);
+}
+
+setInterval(createSpark, 60);
+
+</script>
+</body>
+</html>
