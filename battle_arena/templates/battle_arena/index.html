@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Kingdom - Battle Arena & Results</title>
+  <meta name="description" content="Immersive Pokémon Kingdom Battle Arena with Django backend persistence, DRF APIs, turn-based combat, and dynamic reward distribution.">
+  
+  {% load static %}
+  <!-- Bootstrap 5 CSS (Local Offline) -->
+  <link rel="stylesheet" href="{% static 'battle_arena/css/bootstrap.min.css' %}">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{% static 'battle_arena/css/styles.css' %}">
+</head>
+<body>
+
+  <!-- Global SVG definitions for gradients so they render correctly when layout shifts display:none -->
+  <svg width="0" height="0" style="position: absolute; pointer-events: none; overflow: hidden;">
+    <defs>
+      <!-- Charizard gradients -->
+      <radialGradient id="char-belly" cx="40%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#ffeaa7" />
+        <stop offset="100%" stop-color="#fdcb6e" />
+      </radialGradient>
+      <linearGradient id="char-orange" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ff7675" />
+        <stop offset="100%" stop-color="#d63031" />
+      </linearGradient>
+      <linearGradient id="wing-inside" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#00b894" />
+        <stop offset="100%" stop-color="#006266" />
+      </linearGradient>
+      
+      <!-- Blastoise gradients -->
+      <linearGradient id="shell-brown" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#b5835a" />
+        <stop offset="100%" stop-color="#6d4c41" />
+      </linearGradient>
+      <linearGradient id="body-blue" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#54a0ff" />
+        <stop offset="100%" stop-color="#2e86de" />
+      </linearGradient>
+      
+      <!-- Venusaur gradients -->
+      <linearGradient id="leaf-green" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2ed573" />
+        <stop offset="100%" stop-color="#1b9e54" />
+      </linearGradient>
+      <radialGradient id="petal-pink" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff7675" />
+        <stop offset="100%" stop-color="#d63031" />
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <div id="app-container" class="container py-4">
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+      <div class="d-flex align-items-center gap-3">
+        <div class="game-logo-indicator" style="width: 14px; height: 14px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444;"></div>
+        <h1 class="h4 m-0 fw-bold tracking-wide text-uppercase" style="letter-spacing: 1px;">Pokémon Kingdom</h1>
+      </div>
+      <div>
+        <button id="audio-toggle-btn" class="btn border-0" aria-label="Toggle sound volume">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M11.536 14.01A8.473 8.473 0 0 0 14 10c0-3-2.5-5.5-5.5-5.5v1.1c2.2 0 4.4 1.8 4.4 4.4 0 2.2-1.8 4.4-4.4 4.4v1.1c3 0 5.5-2.5 5.5-5.5zm-2.5 2v-1.1c3.8 0 6.6-2.8 6.6-6.6 0-3.8-2.8-6.6-6.6-6.6V.3c4.4 0 7.7 3.3 7.7 7.7s-3.3 7.7-7.7 7.7zm-4.325-4.89L2.325 8.5H.5A.5.5 0 0 1 0 8V6a.5.5 0 0 1 .5-.5h1.825l2.388-2.11a.5.5 0 0 1 .8-.39V12a.5.5 0 0 1-.825.39z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 1. TRAINER SETUP & PROFILE VIEW -->
+    <main id="setup-view" class="app-view active">
+      <div class="row g-4">
+        <!-- Trainer Selection & Profile creation -->
+        <div class="col-lg-7">
+          <div class="setup-card glass-panel h-100">
+            <h2 class="setup-title text-uppercase">Trainer Configuration</h2>
+            
+            <!-- Trainer Profile Selector -->
+            <div class="mb-4">
+              <label class="form-label text-muted fw-semibold mb-2">Select Active Trainer Profile</label>
+              <div class="d-flex gap-2 mb-2">
+                <select id="trainer-profile-select" class="form-select bg-dark text-white border-secondary">
+                  <option value="">-- Create New Trainer profile --</option>
+                  <!-- Dynamically populated from /api/trainers/ -->
+                </select>
+                <button id="refresh-trainers-btn" class="btn btn-outline-secondary" type="button">
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <!-- Name Input (For new profile or display) -->
+            <div class="trainer-input-wrapper mb-4">
+              <label for="trainer-name-input" class="form-label text-muted fw-semibold mb-2">New Trainer Name</label>
+              <input type="text" id="trainer-name-input" class="trainer-input text-white" placeholder="Enter trainer name (e.g. Ash, Red)..." maxlength="14" autocomplete="off">
+              <div id="trainer-stats-preview" class="mt-2 text-info fw-semibold" style="display:none;"></div>
+            </div>
+
+            <!-- Squad Grid Selection -->
+            <h3 class="squad-selection-title text-uppercase h5">Choose your Battle Pokémon</h3>
+            <div id="setup-pokemon-grid" class="pokemon-grid">
+              <!-- Dynamically populated in JavaScript -->
+            </div>
+
+            <!-- Battle Mode Type -->
+            <div class="mb-4">
+              <label class="form-label text-muted fw-semibold mb-2">Battle Type</label>
+              <div class="btn-group w-100" role="group" aria-label="Battle Type Selector">
+                <input type="radio" class="btn-check" name="battle-type" id="bt-wild" value="Wild Pokémon" checked>
+                <label class="btn btn-outline-primary" for="bt-wild">Wild Pokémon</label>
+                
+                <input type="radio" class="btn-check" name="battle-type" id="bt-trainer" value="Trainer Duel">
+                <label class="btn btn-outline-primary" for="bt-trainer">Trainer Gary</label>
+                
+                <input type="radio" class="btn-check" name="battle-type" id="bt-tournament" value="Tournament">
+                <label class="btn btn-outline-primary" for="bt-tournament">Kingdom Tournament</label>
+              </div>
+            </div>
+
+            <button id="start-battle-btn" class="btn btn-primary btn-start-battle" disabled>
+              Launch Battle Arena
+            </button>
+          </div>
+        </div>
+
+        <!-- Battle History Log -->
+        <div class="col-lg-5">
+          <div class="history-card glass-panel h-100 p-4">
+            <h3 class="text-uppercase h5 mb-3 border-left-highlight">Kingdom Hall of Fame</h3>
+            <div class="history-table-container">
+              <table class="table table-dark table-hover border-secondary border-opacity-25" id="history-table">
+                <thead>
+                  <tr>
+                    <th>Trainer</th>
+                    <th>Opponent</th>
+                    <th>Result</th>
+                    <th>Rewards</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-body">
+                  <!-- Dynamically populated from /api/battles/ -->
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">Loading battle history...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 2. BATTLE ARENA VIEW -->
+    <main id="arena-view" class="app-view">
+      <!-- Arena Subheader with Environment Changer -->
+      <section class="arena-header glass-panel mb-3">
+        <div class="arena-title-info">
+          <h2 class="arena-title-text" id="active-field-title">Grass Plains</h2>
+        </div>
+        <div class="env-selector-wrapper d-flex align-items-center gap-2">
+          <span class="text-muted d-none d-sm-inline" style="font-size: 0.85rem; font-weight: 600;">Environment:</span>
+          <div class="btn-group env-btn-group" role="group" aria-label="Battlefield environments">
+            <button type="button" class="btn env-btn active" data-env="grass-plains" id="btn-env-grass">Grass Plains</button>
+            <button type="button" class="btn env-btn" data-env="mystic-forest" id="btn-env-mystic">Mystic Forest</button>
+            <button type="button" class="btn env-btn" data-env="dragon-mountain" id="btn-env-dragon">Dragon Mountain</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Battlefield Container -->
+      <div id="battlefield-stage" class="battlefield-container grass-plains mb-4">
+        <!-- Live Particles overlay -->
+        <div id="stage-particles" class="battlefield-particles"></div>
+        <div class="battlefield-decorations"></div>
+        
+        <!-- Dynamic Weather Particle Overlay -->
+        <div id="weather-overlay" class="weather-overlay-layer"></div>
+        
+        <!-- Scenery Layer (Trees, Volcanos, Stadium Columns) -->
+        <div id="battlefield-scenery" class="battlefield-scenery-layer"></div>
+
+        <!-- TOP HUD: Player & Opponent status bars at the top of the screen -->
+        <div class="top-hud-container">
+          <!-- Player HUD (Top Left) -->
+          <div class="hud-panel-top hud-player-top glass-panel" id="hud-player-panel">
+            <div id="player-hp-particles" class="hp-particle-container"></div>
+            <div class="hud-trainer-info">
+              <span class="hud-trainer-tag" id="hud-player-trainer">Trainer Ash</span>
+              <span class="badge bg-warning text-dark lvl-badge" id="hud-player-level">Lv.48</span>
+            </div>
+            <div class="hud-pokemon-row">
+              <h3 class="hud-name" id="hud-player-name">Pikachu</h3>
+              <span id="hud-player-type" class="badge-type electric">electric</span>
+            </div>
+            
+            <!-- HP Bar -->
+            <div class="hud-bar-container mt-2">
+              <div class="hud-bar-label">HP</div>
+              <div class="bar-progress-container">
+                <div class="bar-progress hp" id="player-hp-bar"></div>
+              </div>
+              <span class="bar-value" id="player-hp-text">177/177</span>
+            </div>
+
+            <!-- Energy Bar -->
+            <div class="hud-bar-container mt-1">
+              <div class="hud-bar-label">EN</div>
+              <div class="bar-progress-container">
+                <div class="bar-progress energy" id="player-energy-bar"></div>
+              </div>
+              <span class="bar-value" id="player-energy-text">24/24</span>
+            </div>
+          </div>
+
+          <!-- Opponent HUD (Top Right) -->
+          <div class="hud-panel-top hud-enemy-top glass-panel" id="hud-opponent-panel">
+            <div id="enemy-hp-particles" class="hp-particle-container"></div>
+            <div class="hud-trainer-info justify-content-end">
+              <span class="hud-trainer-tag text-danger" id="hud-enemy-trainer">Wild Pokémon</span>
+              <span class="badge bg-danger text-white lvl-badge" id="hud-enemy-level">Lv.50</span>
+            </div>
+            <div class="hud-pokemon-row justify-content-end text-end">
+              <span id="hud-enemy-type" class="badge-type fire me-2">fire</span>
+              <h3 class="hud-name" id="hud-enemy-name">Charizard</h3>
+            </div>
+            
+            <!-- HP Bar -->
+            <div class="hud-bar-container mt-2">
+              <div class="hud-bar-label">HP</div>
+              <div class="bar-progress-container">
+                <div class="bar-progress hp" id="enemy-hp-bar"></div>
+              </div>
+              <span class="bar-value" id="enemy-hp-text">150/150</span>
+            </div>
+
+            <!-- Energy Bar (Placeholder or Enemy energy if tracked) -->
+            <div class="hud-bar-container mt-1">
+              <div class="hud-bar-label">EN</div>
+              <div class="bar-progress-container">
+                <div class="bar-progress energy" id="enemy-energy-bar"></div>
+              </div>
+              <span class="bar-value" id="enemy-energy-text">24/24</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION SIDEBAR (Left Side of Battle Arena) -->
+        <div class="action-sidebar glass-panel">
+          <div class="sidebar-header text-uppercase">Actions</div>
+          
+          <button class="sidebar-action-btn" id="action-physical" title="Physical Attack" data-action="physical">
+            <div class="action-icon physical">
+              <!-- Physical Attack (Sword/Strike) SVG -->
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,13.76 19.43,15.38 18.46,16.7L16.7,14.94C17.5,14.1 18,13.1 18,12C18,8.68 15.32,6 12,6C10.9,6 9.9,6.5 9.06,7.3L7.3,5.54C8.62,4.57 10.24,4 12,4M12,8C14.2,8 16,9.8 16,12C16,12.72 15.81,13.38 15.47,13.97L10.03,8.53C10.62,8.2 11.28,8 12,8M8.53,10.03L13.97,15.47C13.38,15.81 12.72,16 12,16C9.8,16 8,14.2 8,12C8,11.28 8.2,10.62 8.53,10.03M5.54,7.3L7.3,9.06C6.5,9.9 6,10.9 6,12C6,15.32 8.68,18 12,18C13.1,18 14.1,17.5 14.94,16.7L16.7,18.46C15.38,19.43 13.76,20 12,20A8,8 0 0,1 4,12C4,10.24 4.57,8.62 5.54,7.3Z" />
+              </svg>
+            </div>
+            <div class="action-label">Strike</div>
+          </button>
+
+          <button class="sidebar-action-btn" id="action-special" title="Special/Magic Attack" data-action="special">
+            <div class="action-icon special">
+              <!-- Special/Magic Attack (Sparkles/Flame) SVG -->
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M12,2L14.26,6.58L19.31,7.31L15.65,10.87L16.51,15.9L12,13.53L7.49,15.9L8.35,10.87L4.69,7.31L9.74,6.58L12,2M12,5.27L10.58,8.14L7.42,8.6L9.71,10.83L9.17,13.97L12,12.49L14.83,13.97L14.29,10.83L16.58,8.6L13.42,8.14L12,5.27M12,17A5,5 0 0,1 17,22H7A5,5 0 0,1 12,17Z" />
+              </svg>
+            </div>
+            <div class="action-label">Magic</div>
+          </button>
+
+          <button class="sidebar-action-btn" id="action-buff" title="Defense Buff" data-action="buff">
+            <div class="action-icon buff">
+              <!-- Defense Buff (Shield) SVG -->
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M12,22C17.5,18 20,14.3 20,10V4L12,1L4,4V10C4,14.3 6.5,18 12,22M12,3.1L18,5.4V10C18,13.4 16,16.5 12,19.9C8,16.5 6,13.4 6,10V5.4L12,3.1M11,7V11H7V13H11V17H13V13H17V11H13V7H11Z" />
+              </svg>
+            </div>
+            <div class="action-label">Defend</div>
+          </button>
+
+          <button class="sidebar-action-btn" id="action-item" title="Rest / Use Item" data-action="item">
+            <div class="action-icon item">
+              <!-- Item/Bag/Heal SVG -->
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M12,2A3,3 0 0,0 9,5V6H5A2,2 0 0,0 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8A2,2 0 0,0 19,6H15V5A3,3 0 0,0 12,2M12,4A1,1 0 0,1 13,5V6H11V5A1,1 0 0,1 12,4M5,8H19V20H5V8M12,10A4,4 0 0,0 8,14A4,4 0 0,0 12,18A4,4 0 0,0 16,14A4,4 0 0,0 12,10M12,12A2,2 0 0,1 14,14A2,2 0 0,1 12,16A2,2 0 0,1 10,14A2,2 0 0,1 12,12Z" />
+              </svg>
+            </div>
+            <div class="action-label">Rest/Item</div>
+          </button>
+
+          <button class="sidebar-action-btn" id="action-run" title="Run Away" data-action="run">
+            <div class="action-icon run">
+              <!-- Run away/Exit SVG -->
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M19,3H5C3.89,3 3,3.89 3,5V9H5V5H19V19H5V15H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M10.08,15.58L11.5,17L16.5,12L11.5,7L10.08,8.41L12.67,11H3V13H12.67L10.08,15.58Z" />
+              </svg>
+            </div>
+            <div class="action-label">Run</div>
+          </button>
+        </div>
+
+        <!-- CENTER STAGE (Main Battlefield Area) -->
+        <div class="center-stage-container">
+          <!-- Opponent Pokémon on center platform -->
+          <div class="stage-platform platform-center" id="platform-enemy-element">
+            <!-- SVG Platform will load here -->
+          </div>
+          <div class="battle-sprite-wrapper battle-sprite-opponent float-anim-enemy" id="enemy-sprite-wrapper">
+            <div id="enemy-sprite-box"></div>
+          </div>
+          <div class="trainer-wrapper enemy-trainer-wrapper float-anim-enemy" id="enemy-trainer-wrapper">
+            <div id="enemy-trainer-box"></div>
+          </div>
+
+          <!-- Player Pokémon bottom-right/side platform -->
+          <div class="stage-platform platform-player" id="platform-player-element">
+            <!-- SVG Platform will load here -->
+          </div>
+          <div class="battle-sprite-wrapper battle-sprite-player float-anim-player" id="player-sprite-wrapper">
+            <div id="player-sprite-box"></div>
+          </div>
+          <div class="trainer-wrapper player-trainer-wrapper float-anim-player" id="player-trainer-wrapper">
+            <div id="player-trainer-box"></div>
+          </div>
+
+          <!-- Combat Visual VFX Overlay -->
+          <div id="vfx-overlay" class="vfx-overlay-layer"></div>
+        </div>
+      </div>
+
+      <!-- Combat Narrative Log (Bottom Section) -->
+      <section class="battle-control-section">
+        <!-- Turn Log Box -->
+        <div class="log-panel glass-panel w-100">
+          <div class="log-panel-title text-uppercase">Battle Narrator</div>
+          <div id="log-box" class="log-content-box">
+            <!-- Populated via Javascript -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 3. BATTLE RESULTS SCREEN DYNAMIC OVERLAY -->
+  <div id="results-overlay" class="results-overlay">
+    <div id="results-card-element" class="results-card glass-panel">
+      <h2 id="results-title-text" class="results-title">Victory</h2>
+      <p id="results-subtitle-text" class="results-subtitle">Congratulations, Trainer Ash!</p>
+      
+      <div class="rewards-box">
+        <div class="reward-row">
+          <span class="reward-label">Experience Gained</span>
+          <span id="reward-xp" class="reward-val xp">+850 XP</span>
+        </div>
+        <div class="reward-row">
+          <span class="reward-label">Coins Awarded</span>
+          <span id="reward-coins" class="reward-val coins">+150 Coins</span>
+        </div>
+        <div class="reward-row level-up-row" id="levelup-alert" style="display:none;">
+          <span class="reward-label text-warning">LEVEL UP!</span>
+          <span id="reward-level" class="reward-val text-warning">Lv. 2</span>
+        </div>
+      </div>
+
+      <div class="results-actions">
+        <button id="btn-restart" class="btn btn-result-action btn-primary-action">Play Again</button>
+        <button id="btn-rechoose" class="btn btn-result-action btn-primary-action" style="display:none;">Re-Choose Squad</button>
+        <button id="btn-dashboard" class="btn btn-result-action btn-secondary-action">Back to Setup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Core sound engine -->
+  <script src="{% static 'battle_arena/js/audio.js' %}"></script>
+  <!-- Core Battle Logic -->
+  <script src="{% static 'battle_arena/js/battle.js' %}"></script>
+
+</body>
+</html>
