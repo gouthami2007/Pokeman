@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Nexus — Explore the Regions</title>
+<style>
+/* ============================================================
+   POKÉMON NEXUS — DESIGN SYSTEM
+   An explorer's travel atlas: dusk-sky chrome, hand-placed map
+   pins on parchment terrain, radar-sweep exploration sequence.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --dusk-deep:    #232f47;
+  --dusk-mid:     #2e3d5c;
+  --dusk-light:   #46587e;
+  --map-parch:    #ece0bf;
+  --map-parch-2:  #e1d2a8;
+  --ink:          #2c2415;
+  --ink-soft:     #6e6248;
+  --marker-red:   #c1633d;
+  --marker-dark:  #9c4b2c;
+  --teal:         #3d8a8a;
+  --teal-dark:    #2c6868;
+  --gold:         #d9a534;
+  --gold-dark:    #ad7d1f;
+  --line:         rgba(236, 224, 191, 0.16);
+  --radius-card:  16px;
+  --radius-sm:    10px;
+  --shadow-deep:  0 18px 40px rgba(10, 14, 26, 0.45);
+  --font-display: 'Outfit', sans-serif;
+  --font-body:    'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--dusk-deep);
+  background-image:
+    url('data:image/webp;base64,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');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--map-parch);
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ---------- Header ---------- */
+
+.site-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 18px 28px;
+  background: var(--dusk-mid);
+  border-bottom: 4px solid var(--gold);
+  position: sticky; top: 0; z-index: 30;
+  box-shadow: var(--shadow-deep);
+}
+.brand { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; text-shadow: 0 0 18px rgba(217,165,52,0.45); }
+.brand-compass {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3d6 0%, var(--gold) 55%, var(--gold-dark) 100%);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.25), 0 0 16px rgba(217,165,52,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; flex-shrink: 0;
+  position: relative;
+}
+.brand small {
+  display: block; font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; opacity: 0.9;
+}
+nav.main-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+nav.main-nav button {
+  font-family: var(--font-body); font-size: 0.8rem; font-weight: 600;
+  padding: 9px 16px; border-radius: 999px;
+  border: 1.5px solid rgba(236,224,191,0.22);
+  background: transparent; color: var(--map-parch);
+  cursor: pointer; transition: all 0.15s ease;
+}
+nav.main-nav button:hover { border-color: var(--gold); color: var(--gold); }
+nav.main-nav button.active { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+
+/* ---------- Page shell ---------- */
+
+main.page { max-width: 100%; margin: 0; padding: 36px calc((100% - 1150px) / 2 + 26px) 80px; background: rgba(15, 18, 30, 0.68); }
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-kicker { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 0 0 8px; }
+.page-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin: 0 0 26px; text-shadow: 0 0 22px rgba(217,165,52,0.3); letter-spacing: 0.01em; }
+
+/* ---------- Kingdom map ---------- */
+
+.map-frame {
+  position: relative;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-deep);
+  height: 480px;
+  overflow: hidden;
+  border: 6px solid var(--dusk-mid);
+  background: #c8dba0;
+}
+.map-frame svg.map-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.map-frame .map-pin {
+  z-index: 2;
+}
+@media (max-width: 700px) { .map-frame { height: 560px; } }
+
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.map-pin .pin-dot {
+  width: 26px; height: 26px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--marker-red);
+  border: 3px solid var(--ink);
+  transform: rotate(45deg);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.35);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.map-pin:hover .pin-dot { transform: rotate(45deg) scale(1.15); background: var(--marker-dark); }
+.map-pin .pin-label {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.02rem;
+  color: var(--ink);
+  background: rgba(236,224,191,0.92);
+  padding: 4px 13px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+.map-pin .pin-pulse {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--marker-red);
+  opacity: 0.5;
+  transform: translateX(-50%);
+  animation: pulse 2.2s infinite ease-out;
+}
+@keyframes pulse {
+  0% { transform: translateX(-50%) scale(0.6); opacity: 0.55; }
+  100% { transform: translateX(-50%) scale(2.4); opacity: 0; }
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  font-family: var(--font-body); font-size: 0.95rem; font-weight: 700;
+  padding: 12px 24px; border-radius: var(--radius-sm); border: none;
+  cursor: pointer; transition: transform 0.12s ease, filter 0.12s ease;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-teal { background: var(--teal); color: #effafa; box-shadow: 0 6px 14px rgba(61,138,138,0.35); }
+.btn-teal:hover:not(:disabled) { filter: brightness(1.1); }
+.btn-marker { background: var(--marker-red); color: #fff6f1; box-shadow: 0 6px 14px rgba(193,99,61,0.35); }
+.btn-marker:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-gold { background: var(--gold); color: var(--ink); box-shadow: 0 6px 14px rgba(217,165,52,0.35); }
+.btn-gold:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-ghost { background: transparent; border: 1.5px solid var(--line); color: var(--map-parch); }
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+.btn-sm { padding: 8px 14px; font-size: 0.76rem; }
+
+/* ---------- Region details ---------- */
+
+.region-shell {
+  max-width: 640px; margin: 0 auto;
+  background: var(--map-parch); color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 30px; box-shadow: var(--shadow-deep);
+}
+.region-shell .difficulty-tag {
+  display: inline-block;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 5px 13px; border-radius: 999px;
+  color: #fff; margin-bottom: 10px;
+}
+.region-shell h2 { font-family: var(--font-display); font-weight: 800; font-size: 2.1rem; margin: 0 0 16px; }
+
+.region-block { margin-bottom: 20px; }
+.region-block .block-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 8px;
+}
+.pokemon-chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.pokemon-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--map-parch-2);
+  border-radius: 999px;
+  padding: 6px 14px 6px 6px;
+  font-size: 0.85rem; font-weight: 600;
+}
+.pokemon-chip img { width: 28px; height: 28px; object-fit: contain; }
+
+.region-reward-row { display: flex; gap: 16px; }
+.region-reward-tile {
+  background: var(--map-parch-2);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  flex: 1;
+  text-align: center;
+}
+.region-reward-tile .rt-value { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
+.region-reward-tile .rt-label { font-size: 0.7rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+.region-actions { display: flex; gap: 10px; margin-top: 6px; }
+.region-actions .btn { flex: 1; justify-content: center; }
+
+/* ---------- Exploration screen ---------- */
+
+.explore-shell {
+  max-width: 560px; margin: 0 auto;
+  background: var(--map-parch); color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 36px 30px; box-shadow: var(--shadow-deep);
+  text-align: center;
+}
+.explore-shell h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; margin: 0 0 6px; }
+.explore-shell .explore-sub { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 26px; }
+
+.radar {
+  width: 160px; height: 160px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--map-parch-2) 0%, var(--map-parch-2) 60%, transparent 61%);
+  border: 3px dashed var(--teal);
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.radar .radar-sweep {
+  position: absolute;
+  width: 50%; height: 50%;
+  top: 0; left: 50%;
+  transform-origin: 0% 100%;
+  background: conic-gradient(from 0deg, rgba(61,138,138,0.55), transparent 70%);
+  animation: sweep 1.4s linear infinite;
+}
+@keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.radar .radar-icon { font-size: 2.4rem; z-index: 2; }
+
+.encounter-reveal { display: none; }
+.encounter-reveal.show { display: block; animation: popIn 0.4s ease; }
+@keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+.encounter-reveal img {
+  width: 130px; height: 130px; object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(0,0,0,0.25));
+  margin-bottom: 10px;
+  animation: bob 2.4s infinite ease-in-out;
+}
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.encounter-reveal .encounter-title { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin-bottom: 4px; }
+.encounter-reveal .encounter-sub { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 22px; }
+
+.encounter-actions { display: flex; gap: 12px; justify-content: center; }
+.encounter-actions .btn { min-width: 130px; justify-content: center; }
+
+.searching-state.hidden,
+.encounter-reveal.hidden { display: none; }
+
+/* ---------- Rewards screen ---------- */
+
+.rewards-shell {
+  max-width: 560px; margin: 0 auto;
+  background: var(--map-parch); color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 34px 30px; box-shadow: var(--shadow-deep);
+  text-align: center;
+}
+.rewards-shell h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.8rem; margin: 0 0 4px; }
+.rewards-shell .rewards-sub { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 26px; }
+
+.rewards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.reward-stat {
+  background: var(--map-parch-2);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+}
+.reward-stat .rs-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.reward-stat .rs-value { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; }
+.reward-stat .rs-label { font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+.items-found { text-align: left; margin-bottom: 24px; }
+.items-found .block-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
+.item-chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.item-chip { background: var(--map-parch-2); border-radius: 999px; padding: 7px 14px; font-size: 0.85rem; font-weight: 600; }
+
+/* ---------- Travel screen ---------- */
+
+.travel-shell {
+  max-width: 600px; margin: 0 auto;
+  background: var(--map-parch); color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 30px; box-shadow: var(--shadow-deep);
+}
+.current-region-banner {
+  background: var(--map-parch-2);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  display: flex; align-items: center; gap: 14px;
+}
+.current-region-banner .crb-pin { font-size: 1.6rem; }
+.current-region-banner .crb-label { font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+.current-region-banner .crb-name { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; }
+
+.travel-list { display: flex; flex-direction: column; gap: 10px; }
+.travel-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--map-parch-2);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+}
+.travel-row .tr-info { flex: 1; }
+.travel-row h4 { font-family: var(--font-display); font-size: 0.95rem; margin: 0; }
+.travel-row .tr-diff { font-size: 0.74rem; color: var(--ink-soft); }
+
+/* ---------- Stat bar (shown on map page) ---------- */
+
+.stat-bar {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.stat-pill {
+  background: var(--dusk-mid);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 0.85rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--shadow-deep);
+}
+.stat-pill .sp-value { color: var(--gold); font-family: var(--font-display); }
+
+/* ---------- Empty / not found ---------- */
+
+.empty-state { text-align: center; padding: 60px 20px; border: 1.5px dashed var(--line); border-radius: var(--radius-card); }
+.empty-state .eyebrow { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.empty-state h3 { font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 8px; }
+.empty-state p { margin: 0 0 18px; color: var(--map-parch); opacity: 0.75; }
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed; bottom: 26px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--teal-dark); color: #effafa;
+  font-size: 0.85rem; font-weight: 600;
+  padding: 13px 22px; border-radius: 999px;
+  box-shadow: var(--shadow-deep);
+  opacity: 0; pointer-events: none;
+  transition: all 0.25s ease; z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Footer ---------- */
+
+footer.site-footer {
+  text-align: center; padding: 30px 20px 40px;
+  font-size: 0.74rem; letter-spacing: 0.03em;
+  color: rgba(236,224,191,0.35);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 600px) {
+  .site-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  main.page { padding: 24px 16px 60px; }
+  .rewards-grid { grid-template-columns: 1fr; }
+  .region-reward-row { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-compass">🧭</span>
+      <div>
+        Pokémon Nexus
+        <small>Explore the Regions</small>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <button type="button" id="nav-map" class="active" onclick="showView('map')">Map</button>
+      <button type="button" id="nav-travel" onclick="showView('travel')">Travel</button>
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <!-- ============ KINGDOM MAP VIEW ============ -->
+    <section class="view active" id="view-map">
+      <p class="page-kicker">// kingdom_atlas</p>
+      <h1 class="page-title">🗺️ Pokémon Kingdom Map</h1>
+
+      <div class="stat-bar">
+        <span class="stat-pill">🪙 <span class="sp-value" id="map-coins">0</span> Coins</span>
+        <span class="stat-pill">✨ <span class="sp-value" id="map-xp">0</span> XP</span>
+        <span class="stat-pill">🎒 <span class="sp-value" id="map-items">0</span> Items</span>
+        <span class="stat-pill">📍 Currently in <span class="sp-value" id="map-current-region">Royal City</span></span>
+      </div>
+
+      <div class="map-frame" id="map-frame"></div>
+    </section>
+
+    <!-- ============ REGION DETAILS VIEW ============ -->
+    <section class="view" id="view-region">
+      <p class="page-kicker">// region_record</p>
+      <h1 class="page-title">Region Details</h1>
+
+      <div class="region-shell" id="region-shell">
+        <span class="difficulty-tag" id="region-difficulty">EASY</span>
+        <h2 id="region-name">Region</h2>
+
+        <div class="region-block">
+          <div class="block-label">Pokémon Available</div>
+          <div class="pokemon-chip-row" id="region-pokemon-list"></div>
+        </div>
+
+        <div class="region-block">
+          <div class="block-label">Reward</div>
+          <div class="region-reward-row">
+            <div class="region-reward-tile">
+              <div class="rt-value" id="region-reward-coins">0</div>
+              <div class="rt-label">Coins</div>
+            </div>
+            <div class="region-reward-tile">
+              <div class="rt-value" id="region-reward-xp">0</div>
+              <div class="rt-label">XP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="region-actions">
+          <button class="btn btn-ghost" type="button" onclick="showView('map')">Back to Map</button>
+          <button class="btn btn-marker" type="button" id="region-explore-btn">🌿 Explore</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EXPLORATION VIEW ============ -->
+    <section class="view" id="view-explore">
+      <p class="page-kicker">// exploration_log</p>
+      <h1 class="page-title" id="explore-title">🌿 Exploring...</h1>
+
+      <div class="explore-shell">
+        <div id="searching-state" class="searching-state">
+          <h2>Searching the tall grass...</h2>
+          <p class="explore-sub">Something might be nearby. Hold tight.</p>
+          <div class="radar"><span class="radar-sweep"></span><span class="radar-icon">🔎</span></div>
+        </div>
+
+        <div id="encounter-reveal" class="encounter-reveal hidden">
+          <img id="encounter-img" src="" alt="Wild Pokémon">
+          <div class="encounter-title" id="encounter-title">✨ Wild Pokémon Found!</div>
+          <div class="encounter-sub" id="encounter-sub">It's looking right at you.</div>
+          <div class="encounter-actions">
+            <button class="btn btn-marker" type="button" id="catch-btn">🎯 Catch</button>
+            <button class="btn btn-ghost" type="button" id="run-btn">🏃 Run</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REWARDS VIEW ============ -->
+    <section class="view" id="view-rewards">
+      <p class="page-kicker">// exploration_complete</p>
+      <h1 class="page-title">🎁 Exploration Complete</h1>
+
+      <div class="rewards-shell">
+        <h2>You caught it!</h2>
+        <p class="rewards-sub" id="rewards-caught-name">Wild Pokémon</p>
+
+        <div class="rewards-grid">
+          <div class="reward-stat">
+            <div class="rs-icon">🪙</div>
+            <div class="rs-value" id="rewards-coins-earned">0</div>
+            <div class="rs-label">Coins Earned</div>
+          </div>
+          <div class="reward-stat">
+            <div class="rs-icon">✨</div>
+            <div class="rs-value" id="rewards-xp-earned">0</div>
+            <div class="rs-label">XP Earned</div>
+          </div>
+        </div>
+
+        <div class="items-found">
+          <div class="block-label">Items Found</div>
+          <div class="item-chip-row" id="rewards-items-list"></div>
+        </div>
+
+        <button class="btn btn-gold" type="button" id="collect-rewards-btn" style="width:100%; justify-content:center;">Collect Rewards</button>
+      </div>
+    </section>
+
+    <!-- ============ TRAVEL VIEW ============ -->
+    <section class="view" id="view-travel">
+      <p class="page-kicker">// fast_travel</p>
+      <h1 class="page-title">Travel</h1>
+
+      <div class="travel-shell">
+        <div class="current-region-banner">
+          <span class="crb-pin">📍</span>
+          <div>
+            <div class="crb-label">Current Region</div>
+            <div class="crb-name" id="travel-current-name">Royal City</div>
+          </div>
+        </div>
+
+        <div class="block-label" style="margin-bottom:10px;">Available Regions</div>
+        <div class="travel-list" id="travel-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="site-footer">POKÉMON NEXUS — PROGRESS STORED LOCALLY ON THIS DEVICE</footer>
+
+  <script>
+  /* ============================================================
+     DATA LAYER
+     ============================================================ */
+
+  const STORAGE_KEY = 'kingdomAtlasProgress';
+  const SPRITE = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+
+  const REGIONS = [
+    {
+      id: 'kanto', name: 'Royal City', pin: { x: 22, y: 30 }, difficulty: 'Easy', difficultyColor: 'var(--teal)',
+      reward: { coins: 100, xp: 40 },
+      pokemon: [
+        { name: 'Pikachu', sprite: SPRITE(25) },
+        { name: 'Bulbasaur', sprite: SPRITE(1) },
+        { name: 'Charmander', sprite: SPRITE(4) }
+      ]
+    },
+    {
+      id: 'johto', name: 'Mystic Forest', pin: { x: 40, y: 55 }, difficulty: 'Easy', difficultyColor: 'var(--teal)',
+      reward: { coins: 120, xp: 50 },
+      pokemon: [
+        { name: 'Chikorita', sprite: SPRITE(152) },
+        { name: 'Cyndaquil', sprite: SPRITE(155) },
+        { name: 'Totodile', sprite: SPRITE(158) }
+      ]
+    },
+    {
+      id: 'hoenn', name: 'Dragon Mountain', pin: { x: 62, y: 28 }, difficulty: 'Medium', difficultyColor: 'var(--gold)',
+      reward: { coins: 180, xp: 70 },
+      pokemon: [
+        { name: 'Treecko', sprite: SPRITE(252) },
+        { name: 'Torchic', sprite: SPRITE(255) },
+        { name: 'Mudkip', sprite: SPRITE(258) }
+      ]
+    },
+    {
+      id: 'sinnoh', name: 'Desert Valley', pin: { x: 78, y: 58 }, difficulty: 'Medium', difficultyColor: 'var(--gold)',
+      reward: { coins: 220, xp: 90 },
+      pokemon: [
+        { name: 'Turtwig', sprite: SPRITE(387) },
+        { name: 'Chimchar', sprite: SPRITE(390) },
+        { name: 'Piplup', sprite: SPRITE(393) }
+      ]
+    },
+    {
+      id: 'unova', name: 'Ocean Kingdom', pin: { x: 50, y: 80 }, difficulty: 'Hard', difficultyColor: 'var(--marker-red)',
+      reward: { coins: 300, xp: 130 },
+      pokemon: [
+        { name: 'Snivy', sprite: SPRITE(495) },
+        { name: 'Tepig', sprite: SPRITE(498) },
+        { name: 'Oshawott', sprite: SPRITE(501) }
+      ]
+    }
+  ];
+
+  const POSSIBLE_ITEMS = ['Potion', 'Poké Ball', 'Berry', 'Rare Candy', 'Antidote', 'Escape Rope'];
+
+  const DEFAULT_PROGRESS = { coins: 0, xp: 0, itemsCount: 0, currentRegion: 'kanto', log: [] };
+
+  function loadProgress() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { saveProgress(DEFAULT_PROGRESS); return { ...DEFAULT_PROGRESS }; }
+    try {
+      const parsed = JSON.parse(raw);
+      return { ...DEFAULT_PROGRESS, ...parsed };
+    } catch (e) {
+      saveProgress(DEFAULT_PROGRESS);
+      return { ...DEFAULT_PROGRESS };
+    }
+  }
+  function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+  function getRegionById(id) { return REGIONS.find(r => r.id === id); }
+
+  /* ============================================================
+     VIEW ROUTER + STATE
+     ============================================================ */
+
+  let activeRegionId = null;
+  let pendingEncounter = null; // { region, pokemon, rewardCoins, rewardXp, items }
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+
+    ['map','travel'].forEach(n => {
+      const btn = document.getElementById('nav-' + n);
+      if (btn) btn.classList.toggle('active', n === name);
+    });
+
+    if (name === 'map') renderMap();
+    else if (name === 'region') renderRegionDetails();
+    else if (name === 'travel') renderTravel();
+
+    window.scrollTo(0, 0);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function refreshStatBar() {
+    const p = loadProgress();
+    document.getElementById('map-coins').textContent = p.coins;
+    document.getElementById('map-xp').textContent = p.xp;
+    document.getElementById('map-items').textContent = p.itemsCount;
+    document.getElementById('map-current-region').textContent = getRegionById(p.currentRegion).name;
+  }
+
+  /* ---------- Kingdom Map ---------- */
+
+  function renderMap() {
+    refreshStatBar();
+    const frame = document.getElementById('map-frame');
+
+    const mapSVG = `
+    <svg class="map-bg" viewBox="0 0 1000 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <filter id="paper" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+          <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+          <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply" result="blended"/>
+          <feComponentTransfer in="blended"><feFuncA type="linear" slope="1"/></feComponentTransfer>
+        </filter>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#5a3e1b" flood-opacity="0.4"/>
+        </filter>
+        <filter id="mtShadow">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#3a2a0a" flood-opacity="0.4"/>
+        </filter>
+        <radialGradient id="oceanGrad" cx="50%" cy="60%" r="70%">
+          <stop offset="0%" stop-color="#4a9bb5"/>
+          <stop offset="100%" stop-color="#2a6a8a"/>
+        </radialGradient>
+        <linearGradient id="grassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#b8d98a"/>
+          <stop offset="50%" stop-color="#a8c870"/>
+          <stop offset="100%" stop-color="#98b860"/>
+        </linearGradient>
+        <linearGradient id="desertGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e8c87a"/>
+          <stop offset="100%" stop-color="#d4a855"/>
+        </linearGradient>
+        <linearGradient id="forestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3a7a3a"/>
+          <stop offset="100%" stop-color="#286028"/>
+        </linearGradient>
+        <radialGradient id="mountainGrad" cx="40%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="#bbb0a0"/>
+          <stop offset="100%" stop-color="#7a6a5a"/>
+        </radialGradient>
+        <pattern id="wavePat" x="0" y="0" width="30" height="15" patternUnits="userSpaceOnUse">
+          <path d="M0 10 Q7.5 4 15 10 Q22.5 16 30 10" stroke="#5aaccc" stroke-width="1.2" fill="none" opacity="0.5"/>
+        </pattern>
+        <pattern id="dotPat" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+          <circle cx="6" cy="6" r="1" fill="#c8a050" opacity="0.4"/>
+        </pattern>
+      </defs>
+
+      <!-- === OCEAN BASE === -->
+      <rect width="1000" height="480" fill="url(#oceanGrad)"/>
+      <!-- Ocean waves texture -->
+      <rect width="1000" height="480" fill="url(#wavePat)" opacity="0.6"/>
+      <!-- Ocean sheen -->
+      <ellipse cx="500" cy="380" rx="600" ry="180" fill="#3a8aaa" opacity="0.3"/>
+      <!-- Depth lines -->
+      <path d="M0 420 Q250 410 500 425 Q750 440 1000 420" stroke="#3080a0" stroke-width="1" fill="none" opacity="0.4"/>
+      <path d="M0 450 Q300 438 600 452 Q800 462 1000 448" stroke="#3080a0" stroke-width="1" fill="none" opacity="0.4"/>
+
+      <!-- === MAIN LAND MASS (center-left) === -->
+      <path d="M80 20 Q180 10 320 30 Q460 50 550 80 Q620 110 640 180 Q660 240 640 300 Q600 380 520 420 Q440 460 360 465 Q260 468 180 450 Q100 430 60 380 Q20 320 15 240 Q10 150 80 20 Z"
+            fill="url(#grassGrad)" filter="url(#shadow)"/>
+      <!-- Land texture overlay -->
+      <path d="M80 20 Q180 10 320 30 Q460 50 550 80 Q620 110 640 180 Q660 240 640 300 Q600 380 520 420 Q440 460 360 465 Q260 468 180 450 Q100 430 60 380 Q20 320 15 240 Q10 150 80 20 Z"
+            fill="#a0c060" opacity="0.25"/>
+
+      <!-- === EASTERN LAND MASS (right) === -->
+      <path d="M700 20 Q800 10 920 40 Q980 70 990 150 Q995 230 960 300 Q920 360 860 400 Q800 430 740 420 Q680 400 660 340 Q640 270 660 200 Q680 120 700 20 Z"
+            fill="url(#grassGrad)" filter="url(#shadow)"/>
+
+      <!-- === SOUTHERN PENINSULA === -->
+      <path d="M380 420 Q460 440 540 460 Q580 468 560 480 Q500 480 420 475 Q360 472 350 462 Q355 445 380 420 Z"
+            fill="#a8c870"/>
+
+      <!-- === FOREST REGION (center, where Mystic Forest is ~40%, 55%) === -->
+      <!-- Big forest blob -->
+      <ellipse cx="385" cy="280" rx="95" ry="75" fill="#4a8a3a" opacity="0.85"/>
+      <ellipse cx="340" cy="260" rx="60" ry="50" fill="#3a7a30" opacity="0.8"/>
+      <ellipse cx="420" cy="300" rx="55" ry="45" fill="#3d8035" opacity="0.85"/>
+      <!-- Forest trees (stylized) -->
+      <g filter="url(#mtShadow)" opacity="0.9">
+        <!-- Row of trees -->
+        <polygon points="345,225 360,260 330,260" fill="#2a6020"/>
+        <polygon points="365,230 380,265 350,265" fill="#2a6820"/>
+        <polygon points="385,222 400,258 370,258" fill="#226018"/>
+        <polygon points="320,242 335,275 305,275" fill="#2a6020"/>
+        <polygon points="405,240 420,273 390,273" fill="#226018"/>
+        <polygon points="355,265 370,298 340,298" fill="#2a6020"/>
+        <polygon points="380,268 395,300 365,300" fill="#226018"/>
+        <polygon points="330,258 345,290 315,290" fill="#2a5818"/>
+        <!-- Second row -->
+        <polygon points="350,288 363,318 337,318" fill="#2a6020"/>
+        <polygon points="372,282 385,312 359,312" fill="#226018"/>
+        <polygon points="393,275 406,305 380,305" fill="#2a6020"/>
+      </g>
+      <!-- Forest label area -->
+      <rect x="310" y="318" width="110" height="18" rx="9" fill="#c8e4a0" opacity="0.6"/>
+
+      <!-- === MOUNTAIN RANGE (upper center-right, Dragon Mountain ~62%, 28%) === -->
+      <g filter="url(#mtShadow)">
+        <!-- Mountain range group -->
+        <polygon points="560,175 600,100 640,175" fill="#9a8a78"/>
+        <polygon points="560,175 600,110 640,175" fill="#c8b8a0" opacity="0.6"/>
+        <polygon points="590,180 625,115 660,180" fill="#8a7a68"/>
+        <polygon points="590,180 625,125 660,180" fill="#b8a890" opacity="0.55"/>
+        <polygon points="540,185 570,120 610,185" fill="#a89888"/>
+        <polygon points="540,185 570,130 610,185" fill="#c0b0a0" opacity="0.5"/>
+        <polygon points="615,185 645,130 675,185" fill="#9a8878"/>
+        <polygon points="615,185 645,140 675,185" fill="#baa898" opacity="0.5"/>
+        <!-- Snow caps -->
+        <polygon points="596,110 600,100 604,110 600,108" fill="white" opacity="0.9"/>
+        <polygon points="621,126 625,115 629,126 625,123" fill="white" opacity="0.85"/>
+        <polygon points="566,121 570,111 574,121 570,118" fill="white" opacity="0.8"/>
+        <!-- Rocky base -->
+        <ellipse cx="610" cy="185" rx="80" ry="15" fill="#8a7060" opacity="0.4"/>
+      </g>
+
+      <!-- === DESERT REGION (right side, ~78%, 58%) === -->
+      <ellipse cx="795" cy="290" rx="110" ry="80" fill="url(#desertGrad)" opacity="0.9"/>
+      <ellipse cx="810" cy="280" rx="80" ry="55" fill="#e0bc6a" opacity="0.5"/>
+      <!-- Desert dots texture -->
+      <ellipse cx="795" cy="290" rx="110" ry="80" fill="url(#dotPat)"/>
+      <!-- Sand dunes -->
+      <path d="M710 310 Q745 295 780 312 Q815 328 850 310 Q875 298 890 315" stroke="#c8a048" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M720 325 Q760 308 800 326 Q835 342 870 325" stroke="#c0983a" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <!-- Cacti (stylized) -->
+      <g fill="#7a8a30" opacity="0.8">
+        <rect x="730" y="280" width="4" height="20" rx="2"/>
+        <rect x="726" y="287" width="12" height="3" rx="1"/>
+        <rect x="760" y="275" width="4" height="22" rx="2"/>
+        <rect x="755" y="283" width="13" height="3" rx="1"/>
+        <rect x="825" y="278" width="4" height="20" rx="2"/>
+        <rect x="820" y="286" width="12" height="3" rx="1"/>
+      </g>
+
+      <!-- === OCEAN KINGDOM area (south center, ~50%, 80%) === -->
+      <!-- Shoal/shallow water -->
+      <ellipse cx="480" cy="400" rx="120" ry="50" fill="#5ab8d4" opacity="0.5"/>
+      <ellipse cx="480" cy="410" rx="90" ry="35" fill="#6ac8e4" opacity="0.4"/>
+      <!-- Small islands -->
+      <ellipse cx="450" cy="430" rx="35" ry="18" fill="#b0d880" opacity="0.9" filter="url(#shadow)"/>
+      <ellipse cx="510" cy="440" rx="28" ry="14" fill="#a8d070" opacity="0.85" filter="url(#shadow)"/>
+      <!-- Waves around islands -->
+      <path d="M415 420 Q430 415 445 422 Q432 428 415 420" stroke="#70c8e0" stroke-width="1.2" fill="none" opacity="0.7"/>
+      <path d="M478 432 Q493 426 508 434 Q494 440 478 432" stroke="#70c8e0" stroke-width="1.2" fill="none" opacity="0.7"/>
+
+      <!-- === CITY area (Royal City upper-left ~22%, 30%) === -->
+      <ellipse cx="215" cy="150" rx="48" ry="35" fill="#d0c090" opacity="0.7"/>
+      <!-- City buildings (tiny) -->
+      <g fill="#8a7050" opacity="0.85">
+        <rect x="193" y="130" width="8" height="18" rx="1"/>
+        <rect x="205" y="125" width="10" height="23" rx="1"/>
+        <rect x="219" y="132" width="8" height="16" rx="1"/>
+        <rect x="230" y="128" width="7" height="20" rx="1"/>
+        <rect x="208" y="115" width="6" height="10" rx="1"/><!-- tower -->
+        <polygon points="208,115 211,108 214,115" fill="#7a6040"/><!-- spire -->
+      </g>
+      <!-- City walls -->
+      <path d="M185 148 Q215 138 248 148 Q248 162 215 165 Q185 162 185 148Z" stroke="#9a8060" stroke-width="2" fill="none" opacity="0.6"/>
+
+      <!-- === ROADS / PATHS between regions === -->
+      <g stroke="#c8a050" stroke-width="2.5" fill="none" stroke-dasharray="8,5" opacity="0.6">
+        <!-- Royal City to Mystic Forest -->
+        <path d="M235 185 Q290 220 350 270"/>
+        <!-- Mystic Forest to Dragon Mountain -->
+        <path d="M400 255 Q470 210 555 175"/>
+        <!-- Dragon Mountain to Desert Valley -->
+        <path d="M650 170 Q720 210 775 270"/>
+        <!-- Royal City to Ocean Kingdom -->
+        <path d="M220 200 Q300 310 430 405"/>
+        <!-- Desert Valley to Ocean Kingdom -->
+        <path d="M770 330 Q700 380 540 425"/>
+      </g>
+
+      <!-- === COMPASS ROSE (top-right corner) === -->
+      <g transform="translate(920, 65)">
+        <circle cx="0" cy="0" r="38" fill="#f0e8cc" stroke="#8a7050" stroke-width="2" opacity="0.9"/>
+        <circle cx="0" cy="0" r="30" fill="none" stroke="#c8a050" stroke-width="1" opacity="0.6"/>
+        <!-- N arrow -->
+        <polygon points="0,-30 -7,-10 0,-15 7,-10" fill="#c1633d"/>
+        <!-- S arrow -->
+        <polygon points="0,30 -7,10 0,15 7,10" fill="#8a7050"/>
+        <!-- E arrow -->
+        <polygon points="30,0 10,-7 15,0 10,7" fill="#8a7050"/>
+        <!-- W arrow -->
+        <polygon points="-30,0 -10,-7 -15,0 -10,7" fill="#8a7050"/>
+        <!-- Center dot -->
+        <circle cx="0" cy="0" r="5" fill="#c1633d"/>
+        <circle cx="0" cy="0" r="2" fill="#f0e8cc"/>
+        <!-- Cardinal labels -->
+        <text x="0" y="-36" text-anchor="middle" font-family="serif" font-size="11" font-weight="bold" fill="#2c2415">N</text>
+        <text x="0" y="46" text-anchor="middle" font-family="serif" font-size="11" fill="#2c2415">S</text>
+        <text x="40" y="4" text-anchor="middle" font-family="serif" font-size="11" fill="#2c2415">E</text>
+        <text x="-40" y="4" text-anchor="middle" font-family="serif" font-size="11" fill="#2c2415">W</text>
+      </g>
+
+      <!-- === MAP TITLE CARTOUCHE === -->
+      <g transform="translate(500, 58)">
+        <rect x="-120" y="-16" width="240" height="32" rx="8" fill="#f0e0b0" stroke="#9a7040" stroke-width="2" opacity="0.92"/>
+        <!-- Decorative corners -->
+        <path d="M-120,-16 L-108,-16 L-108,-8" stroke="#9a7040" stroke-width="1.5" fill="none"/>
+        <path d="M120,-16 L108,-16 L108,-8" stroke="#9a7040" stroke-width="1.5" fill="none"/>
+        <path d="M-120,16 L-108,16 L-108,8" stroke="#9a7040" stroke-width="1.5" fill="none"/>
+        <path d="M120,16 L108,16 L108,8" stroke="#9a7040" stroke-width="1.5" fill="none"/>
+        <text x="0" y="5" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="bold" fill="#5a3a10" letter-spacing="2">POKÉMON KINGDOM</text>
+      </g>
+
+      <!-- === SCALE BAR (bottom-left) === -->
+      <g transform="translate(35, 450)">
+        <rect x="0" y="0" width="100" height="6" fill="none" stroke="#5a4020" stroke-width="1.5" opacity="0.7"/>
+        <rect x="0" y="0" width="50" height="6" fill="#5a4020" opacity="0.6"/>
+        <text x="50" y="-4" text-anchor="middle" font-family="serif" font-size="9" fill="#3a2810" opacity="0.8">50 leagues</text>
+      </g>
+
+      <!-- === SUBTLE PARCHMENT OVERLAY for aged look === -->
+      <rect width="1000" height="480" fill="#f5ead0" opacity="0.10"/>
+      <!-- Vignette -->
+      <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+        <stop offset="60%" stop-color="transparent"/>
+        <stop offset="100%" stop-color="#1a1206" stop-opacity="0.35"/>
+      </radialGradient>
+      <rect width="1000" height="480" fill="url(#vignette)"/>
+
+      <!-- === DECORATIVE BORDER === -->
+      <rect x="4" y="4" width="992" height="472" rx="10" fill="none" stroke="#8a6030" stroke-width="3" opacity="0.5"/>
+      <rect x="10" y="10" width="980" height="460" rx="8" fill="none" stroke="#c8a050" stroke-width="1.5" opacity="0.35"/>
+    </svg>
+    `;
+
+    frame.innerHTML = mapSVG + REGIONS.map(r => `
+      <button type="button" class="map-pin" style="left:${r.pin.x}%; top:${r.pin.y}%;" onclick="openRegion('${r.id}')">
+        <span class="pin-pulse"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-label">📍 ${r.name}</span>
+      </button>
+    `).join('');
+  }
+
+  function openRegion(id) {
+    activeRegionId = id;
+    showView('region');
+  }
+
+  /* ---------- Region Details ---------- */
+
+  function renderRegionDetails() {
+    const region = getRegionById(activeRegionId);
+    if (!region) { showView('map'); return; }
+
+    document.getElementById('region-difficulty').textContent = region.difficulty.toUpperCase();
+    document.getElementById('region-difficulty').style.background = region.difficultyColor;
+    document.getElementById('region-name').textContent = `Region: ${region.name}`;
+    document.getElementById('region-reward-coins').textContent = region.reward.coins;
+    document.getElementById('region-reward-xp').textContent = region.reward.xp;
+
+    document.getElementById('region-pokemon-list').innerHTML = region.pokemon.map(p => `
+      <span class="pokemon-chip"><img src="${p.sprite}" alt="" onerror="this.style.display='none'">${p.name}</span>
+    `).join('');
+  }
+
+  document.getElementById('region-explore-btn').addEventListener('click', () => {
+    showView('explore');
+    beginExploration(activeRegionId);
+  });
+
+  /* ---------- Exploration ---------- */
+
+  function beginExploration(regionId) {
+    const region = getRegionById(regionId);
+    document.getElementById('explore-title').textContent = `🌿 Exploring ${region.name}...`;
+    document.getElementById('searching-state').classList.remove('hidden');
+    document.getElementById('encounter-reveal').classList.remove('show');
+    document.getElementById('encounter-reveal').classList.add('hidden');
+
+    setTimeout(() => {
+      const wild = region.pokemon[Math.floor(Math.random() * region.pokemon.length)];
+      const itemCount = 1 + Math.floor(Math.random() * 2); // 1-2 items
+      const items = [];
+      for (let i = 0; i < itemCount; i++) {
+        items.push(POSSIBLE_ITEMS[Math.floor(Math.random() * POSSIBLE_ITEMS.length)]);
+      }
+
+      pendingEncounter = {
+        region,
+        pokemon: wild,
+        rewardCoins: region.reward.coins,
+        rewardXp: region.reward.xp,
+        items
+      };
+
+      document.getElementById('searching-state').classList.add('hidden');
+      document.getElementById('encounter-img').src = wild.sprite;
+      document.getElementById('encounter-title').textContent = `✨ Wild ${wild.name} Found!`;
+      document.getElementById('encounter-sub').textContent = 'It looks curious about you.';
+      const reveal = document.getElementById('encounter-reveal');
+      reveal.classList.remove('hidden');
+      reveal.classList.add('show');
+    }, 1600);
+  }
+
+  document.getElementById('catch-btn').addEventListener('click', () => {
+    if (!pendingEncounter) return;
+    showView('rewards');
+    renderRewardsScreen(pendingEncounter);
+  });
+
+  document.getElementById('run-btn').addEventListener('click', () => {
+    if (!pendingEncounter) return;
+    showToast('You ran away. Searching again...');
+    beginExploration(pendingEncounter.region.id);
+  });
+
+  /* ---------- Rewards screen ---------- */
+
+  function renderRewardsScreen(encounter) {
+    document.getElementById('rewards-caught-name').textContent = `You caught a wild ${encounter.pokemon.name}!`;
+    document.getElementById('rewards-coins-earned').textContent = encounter.rewardCoins;
+    document.getElementById('rewards-xp-earned').textContent = encounter.rewardXp;
+    document.getElementById('rewards-items-list').innerHTML = encounter.items.map(it => `<span class="item-chip">🎁 ${it}</span>`).join('');
+  }
+
+  document.getElementById('collect-rewards-btn').addEventListener('click', () => {
+    if (!pendingEncounter) { showView('map'); return; }
+    const p = loadProgress();
+    p.coins += pendingEncounter.rewardCoins;
+    p.xp += pendingEncounter.rewardXp;
+    p.itemsCount += pendingEncounter.items.length;
+    p.log.unshift({
+      region: pendingEncounter.region.name,
+      pokemon: pendingEncounter.pokemon.name,
+      coins: pendingEncounter.rewardCoins,
+      xp: pendingEncounter.rewardXp,
+      items: pendingEncounter.items
+    });
+    p.log = p.log.slice(0, 20);
+    saveProgress(p);
+
+    showToast(`Collected ${pendingEncounter.rewardCoins} coins and ${pendingEncounter.rewardXp} XP!`);
+    pendingEncounter = null;
+    showView('map');
+  });
+
+  /* ---------- Travel screen ---------- */
+
+  function renderTravel() {
+    const p = loadProgress();
+    const current = getRegionById(p.currentRegion);
+    document.getElementById('travel-current-name').textContent = current.name;
+
+    const others = REGIONS.filter(r => r.id !== p.currentRegion);
+    document.getElementById('travel-list').innerHTML = others.map(r => `
+      <div class="travel-row">
+        <div class="tr-info">
+          <h4>${r.name}</h4>
+          <span class="tr-diff">Difficulty: ${r.difficulty}</span>
+        </div>
+        <button class="btn btn-teal btn-sm" type="button" onclick="travelTo('${r.id}')">Travel</button>
+      </div>
+    `).join('');
+  }
+
+  function travelTo(regionId) {
+    const p = loadProgress();
+    p.currentRegion = regionId;
+    saveProgress(p);
+    const region = getRegionById(regionId);
+    showToast(`Traveled to ${region.name}!`);
+    activeRegionId = regionId;
+    showView('region');
+  }
+
+  /* ---------- Boot ---------- */
+
+  renderMap();
+  </script>
+</body>
+</html>
