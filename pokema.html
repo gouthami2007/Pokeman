@@ -1,0 +1,2206 @@
+===== index.html =====
+
+html
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- 
+    ==========================================================================
+    [CUSTOMIZATION] APPLICATION NAME: CHANGE THE TITLE TAG BELOW
+    ========================================================================== 
+  -->
+  <title>Pokémon Nexus</title>
+  
+  <!-- Google Fonts: Orbitron (Headings) and Poppins (Cards & Body Text) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Project Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas for Cinematic Fire Embers and Particles -->
+  <canvas id="particles-canvas"></canvas>
+  
+  <!-- Background Image Overlay (Managed by JavaScript variable) -->
+  <div class="bg-image-overlay" id="bg-image-overlay"></div>
+  
+  <!-- Dark overlay to ensure text readability -->
+  <div class="dark-overlay"></div>
+  
+  <!-- Ambient Fire Glow behind content -->
+  <div class="ambient-glow"></div>
+  
+  <div class="app-container">
+    <!-- Header Area -->
+    <header class="main-header">
+      <div class="logo-area">
+        <div class="fire-logo-icon">
+          <i class="fa-solid fa-fire-flame-curved logo-glow"></i>
+          <span class="pokeball-inner"></span>
+        </div>
+        <div class="logo-text">
+          <!-- 
+            ==========================================================================
+            [CUSTOMIZATION] APPLICATION NAME: CHANGE THE HEADER LOGO TITLE BELOW
+            ========================================================================== 
+          -->
+          <h1 class="logo-title">Pokémon Nexus</h1>
+          <span class="logo-subtitle">Ranger Mission Log</span>
+        </div>
+      </div>
+      
+      <!-- Fiery Navigation Bar -->
+      <nav class="navigation-bar">
+        <ul>
+          <li class="nav-tab active" data-tab="dashboard">
+            <a href="#"><i class="fa-solid fa-gamepad"></i> Dashboard</a>
+          </li>
+          <li class="nav-tab" data-tab="active-missions">
+            <a href="#"><i class="fa-solid fa-shield-halved"></i> Active Missions</a>
+          </li>
+          <li class="nav-tab" data-tab="completed">
+            <a href="#"><i class="fa-solid fa-circle-check"></i> Completed</a>
+          </li>
+          <li class="nav-tab" data-tab="rewards">
+            <a href="#"><i class="fa-solid fa-trophy"></i> Rewards</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <div class="content-layout">
+      <!-- Sidebar / Trainer Status Panel -->
+      <aside class="trainer-sidebar glass-panel">
+        <div class="trainer-card-header">
+          <div class="trainer-avatar-container">
+            <div class="avatar-ring"></div>
+            <!-- Custom Fire Pokémon Emblem SVG -->
+            <svg class="trainer-avatar" viewBox="0 0 100 100">
+              <defs>
+                <radialGradient id="avatarGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#FFAA00" stop-opacity="0.8"/>
+                  <stop offset="100%" stop-color="#FF3300" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <circle cx="50%" cy="50%" r="45" fill="#121212" stroke="#FF6B00" stroke-width="2"/>
+              <path d="M50,15 C50,15 62,35 62,48 C62,60 52,68 50,75 C48,68 38,60 38,48 C38,35 50,15 50,15 Z" fill="url(#avatarGlow)" />
+              <path d="M50,28 C50,28 58,42 58,52 C58,62 50,68 50,68 C50,68 42,62 42,52 C42,42 50,28 50,28 Z" fill="#FF6B00" />
+              <path d="M50,40 C50,40 54,50 54,57 C54,64 50,68 50,68 C50,68 46,64 46,57 C46,50 50,40 50,40 Z" fill="#FFAA00" />
+            </svg>
+          </div>
+          <div class="trainer-info">
+            <h2 class="trainer-name">TRAINER RED</h2>
+            <div class="trainer-class">Volcano Clan Ranger</div>
+          </div>
+        </div>
+        <div class="trainer-stats-section">
+          <!-- Level Badge & XP -->
+          <div class="stat-row xp-row">
+            <div class="level-badge">
+              <span class="level-label">LVL</span>
+              <span class="level-number" id="trainer-level">28</span>
+            </div>
+            <div class="xp-details">
+              <div class="xp-header">
+                <span>Experience</span>
+                <span class="xp-values"><span id="current-xp">4,200</span> / <span id="max-xp">5,000</span> XP</span>
+              </div>
+              <div class="xp-bar-container">
+                <div class="xp-bar-fill" id="xp-bar-fill" style="width: 84%;"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Currency Counters -->
+          <div class="currency-panel">
+            <div class="currency-item">
+              <div class="currency-icon gold"><i class="fa-solid fa-coins"></i></div>
+              <div class="currency-info-box">
+                <span class="currency-val" id="trainer-coins">1,450</span>
+                <span class="currency-lbl">Gold Coins</span>
+              </div>
+            </div>
+            <div class="currency-item">
+              <div class="currency-icon amber"><i class="fa-solid fa-cubes"></i></div>
+              <div class="currency-info-box">
+                <span class="currency-val" id="trainer-xp-earned">9,800</span>
+                <span class="currency-lbl">Career XP</span>
+              </div>
+            </div>
+          </div>
+          <!-- Badges Collection -->
+          <div class="badges-panel">
+            <h3 class="panel-subtitle"><i class="fa-solid fa-award"></i> Badges Unlocked</h3>
+            <div class="badges-grid">
+              <div class="badge-item active" title="Boulder Badge">
+                <div class="badge-icon boulder"><i class="fa-solid fa-gem"></i></div>
+              </div>
+              <div class="badge-item active" title="Cascade Badge">
+                <div class="badge-icon cascade"><i class="fa-solid fa-droplet"></i></div>
+              </div>
+              <div class="badge-item active" title="Thunder Badge">
+                <div class="badge-icon bolt"><i class="fa-solid fa-bolt"></i></div>
+              </div>
+              <div class="badge-item active" title="Rainbow Badge">
+                <div class="badge-icon rainbow"><i class="fa-solid fa-rainbow"></i></div>
+              </div>
+              <div class="badge-item active" title="Soul Badge">
+                <div class="badge-icon soul"><i class="fa-solid fa-ghost"></i></div>
+              </div>
+              <div class="badge-item active" title="Marsh Badge">
+                <div class="badge-icon marsh"><i class="fa-solid fa-brain"></i></div>
+              </div>
+              <div class="badge-item active glow-fire" title="Volcano Badge">
+                <div class="badge-icon volcano"><i class="fa-solid fa-volcano"></i></div>
+              </div>
+              <div class="badge-item locked" title="Earth Badge (Locked)">
+                <div class="badge-icon earth"><i class="fa-solid fa-mountain"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block btn-post-quest" id="btn-open-modal">
+          <i class="fa-solid fa-circle-plus"></i> Post New Bounty
+        </button>
+      </aside>
+      <!-- Main Pokémon Nexus Section -->
+      <main class="quest-board-main">
+        <!-- Section Header -->
+        <div class="section-title-area">
+          <span class="section-code">// POKEMON_NEXUS</span>
+          <div class="section-title-wrap">
+            <i class="fa-solid fa-scroll scroll-icon"></i>
+            <!-- 
+              ==========================================================================
+              [CUSTOMIZATION] APPLICATION NAME: CHANGE THE SECTION TITLE BELOW
+              ========================================================================== 
+            -->
+            <h2 class="section-title" id="main-section-title">Pokémon Nexus</h2>
+          </div>
+        </div>
+        <!-- Filter and Search controls inside glass container -->
+        <div class="controls-panel glass-panel">
+          <div class="search-sort-row">
+            <div class="search-box-wrap">
+              <span class="control-label">Search Bounties</span>
+              <div class="search-input-container">
+                <i class="fa-solid fa-fire fire-search-icon"></i>
+                <input type="text" id="quest-search" placeholder="e.g. Catch 5 Pokémon..." class="dark-input">
+              </div>
+            </div>
+            
+            <div class="sort-box-wrap">
+              <span class="control-label">Sort By</span>
+              <div class="select-container">
+                <select id="quest-sort" class="dark-select">
+                  <option value="default">Default Order</option>
+                  <option value="progress-desc">Progress (High to Low)</option>
+                  <option value="progress-asc">Progress (Low to High)</option>
+                  <option value="xp-desc">XP Reward (High to Low)</option>
+                  <option value="coins-desc">Gold Reward (High to Low)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+          </div>
+          <div class="filter-chips-row">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="pending">Pending</button>
+            <button class="filter-chip" data-filter="active">Active</button>
+            <button class="filter-chip" data-filter="completed">Completed</button>
+          </div>
+        </div>
+        <!-- Quest Count Summary -->
+        <div class="quest-summary-text">
+          Showing <span id="filtered-count" class="highlight-fire">6</span> of <span id="total-count">6</span> bounties
+        </div>
+        <!-- Dynamic Quests Grid -->
+        <div class="quests-grid" id="quests-grid">
+          <!-- Cards are generated dynamically in script.js -->
+        </div>
+        <!-- Rewards Shop Panel (Shown only when Rewards tab is active) -->
+        <div class="rewards-panel-content hidden" id="rewards-panel-content">
+          <div class="rewards-header-banner glass-panel">
+            <div class="rewards-banner-text">
+              <h3>Ranger Reward Cache</h3>
+              <p>Exchange your hard-earned Coins for rare Pokémon adventure supplies!</p>
+            </div>
+            <i class="fa-solid fa-gift gift-banner-icon"></i>
+          </div>
+          <div class="rewards-grid">
+            <div class="reward-item-card glass-panel">
+              <div class="reward-badge-top">ITEM</div>
+              <div class="reward-media">
+                <i class="fa-solid fa-cookie-bite reward-large-icon rare-candy"></i>
+              </div>
+              <div class="reward-item-info">
+                <h4>Rare Candy</h4>
+                <p>Instantly raises a Pokémon's level by 1.</p>
+                <div class="reward-price">
+                  <span class="price-val"><i class="fa-solid fa-coins"></i> 300</span>
+                  <button class="btn btn-reward-buy" data-item="Rare Candy" data-price="300">Purchase</button>
+                </div>
+              </div>
+            </div>
+            <div class="reward-item-card glass-panel">
+              <div class="reward-badge-top">BALL</div>
+              <div class="reward-media">
+                <i class="fa-solid fa-circle-dot reward-large-icon master-ball"></i>
+              </div>
+              <div class="reward-item-info">
+                <h4>Master Ball</h4>
+                <p>Catches any wild Pokémon without fail.</p>
+                <div class="reward-price">
+                  <span class="price-val"><i class="fa-solid fa-coins"></i> 800</span>
+                  <button class="btn btn-reward-buy" data-item="Master Ball" data-price="800">Purchase</button>
+                </div>
+              </div>
+            </div>
+            <div class="reward-item-card glass-panel">
+              <div class="reward-badge-top">STONE</div>
+              <div class="reward-media">
+                <i class="fa-solid fa-gem reward-large-icon fire-stone"></i>
+              </div>
+              <div class="reward-item-info">
+                <h4>Fire Stone</h4>
+                <p>Evolves certain species of Fire-type Pokémon.</p>
+                <div class="reward-price">
+                  <span class="price-val"><i class="fa-solid fa-coins"></i> 450</span>
+                  <button class="btn btn-reward-buy" data-item="Fire Stone" data-price="450">Purchase</button>
+                </div>
+              </div>
+            </div>
+            <div class="reward-item-card glass-panel">
+              <div class="reward-badge-top">MEDICINE</div>
+              <div class="reward-media">
+                <i class="fa-solid fa-flask reward-large-icon max-potion"></i>
+              </div>
+              <div class="reward-item-info">
+                <h4>Max Potion</h4>
+                <p>Fully restores the HP of a single Pokémon.</p>
+                <div class="reward-price">
+                  <span class="price-val"><i class="fa-solid fa-coins"></i> 150</span>
+                  <button class="btn btn-reward-buy" data-item="Max Potion" data-price="150">Purchase</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <!-- Glassmorphism Modal for Adding Quests/Bounties -->
+  <div class="modal-overlay" id="quest-modal">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-scroll"></i> Post a Ranger Bounty</h3>
+        <button class="modal-close" id="btn-close-modal">&times;</button>
+      </div>
+      
+      <form id="new-quest-form" class="modal-form">
+        <div class="form-group">
+          <label for="quest-title-input">Bounty Objective</label>
+          <input type="text" id="quest-title-input" required placeholder="e.g., Defeat Gym Leader Blaine" class="dark-input">
+        </div>
+        
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="quest-target-input">Target Count</label>
+            <input type="number" id="quest-target-input" min="1" value="1" required class="dark-input">
+          </div>
+          <div class="form-group">
+            <label for="quest-category-select">Category</label>
+            <div class="select-container">
+              <select id="quest-category-select" class="dark-select">
+                <option value="battle">Battle</option>
+                <option value="catch">Catching</option>
+                <option value="exploration">Exploration</option>
+                <option value="evolution">Evolution</option>
+              </select>
+              <i class="fa-solid fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="rewards-config-title">Bounty Rewards</div>
+        
+        <div class="form-row-3">
+          <div class="form-group">
+            <label for="quest-xp-reward">XP Reward</label>
+            <input type="number" id="quest-xp-reward" min="0" value="50" class="dark-input">
+          </div>
+          <div class="form-group">
+            <label for="quest-coins-reward">Coins Reward</label>
+            <input type="number" id="quest-coins-reward" min="0" value="100" class="dark-input">
+          </div>
+          <div class="form-group">
+            <label for="quest-item-reward">Bonus Item</label>
+            <div class="select-container">
+              <select id="quest-item-reward" class="dark-select">
+                <option value="">None</option>
+                <option value="Rare Candy">Rare Candy</option>
+                <option value="Master Ball">Master Ball</option>
+                <option value="Fire Stone">Fire Stone</option>
+                <option value="Hyper Potion">Hyper Potion</option>
+              </select>
+              <i class="fa-solid fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-fire"></i> Publish Bounty</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Notification Toast -->
+  <div class="notification-toast" id="notification-toast">
+    <div class="notification-icon" id="notif-icon"><i class="fa-solid fa-check"></i></div>
+    <div class="notification-text">
+      <h5 id="notif-title">Success</h5>
+      <p id="notif-message">Reward claimed!</p>
+    </div>
+  </div>
+  <!-- Script File -->
+  <script src="script.js"></script>
+</body>
+</html>
+===== style.css =====
+
+css
+
+
+/* ==========================================================================
+   Pokémon Nexus - Premium Fire Theme Stylesheet
+   ========================================================================== */
+/* 
+  ==========================================================================
+  [CUSTOMIZATION] FONT SIZES & FONTS: EDIT THESE VARIABLES TO RESIZE ALL FONTS
+  ========================================================================== 
+*/
+:root {
+  --title-size: 56px;       /* App main logo title (significantly increased) */
+  --heading-size: 38px;     /* Page headers, section titles, trainer name */
+  --navbar-size: 20px;      /* Navigation tab links (larger and more premium) */
+  --card-title-size: 24px;  /* Quest titles, reward names */
+  --body-size: 16px;        /* Standard UI texts, inputs, descriptions, buttons */
+  /* Font Families: Orbitron for headings, Poppins for content & cards */
+  --font-interface: 'Poppins', sans-serif;
+  --font-fantasy: 'Orbitron', sans-serif;
+  /* Theme Color Palette Tokens */
+  --fire-orange: #FF6B00;
+  --flame-red: #FF3300;
+  --accent-gold: #FFAA00;
+  --dark-bg: #121212;
+  --darker-bg: #090909;
+  --lava-dark: #1e0b08;
+  --text-primary: #FFFFFF;
+  --text-muted: #B3A19F;
+  --text-dark: #121212;
+  
+  /* Glassmorphism Options */
+  --dark-glass: rgba(18, 18, 18, 0.75);
+  --card-border: rgba(255, 107, 0, 0.35); /* More prominent orange border */
+  --card-border-hover: rgba(255, 107, 0, 0.95);
+  --glow-orange: 0 0 15px rgba(255, 107, 0, 0.65);
+  --glow-red: 0 0 15px rgba(255, 51, 0, 0.75);
+  --glow-gold: 0 0 20px rgba(255, 170, 0, 0.85);
+}
+/* Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: var(--font-interface);
+  font-size: var(--body-size);
+  background-color: var(--dark-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+/* Background Systems */
+#particles-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+.bg-image-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* Fixed background requirement */
+  z-index: -3;
+  transition: background-image 1s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: brightness(0.95) contrast(1.05);
+}
+.dark-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Flat dark overlay so the Pokémon background image remains clearly visible */
+  background-color: rgba(0, 0, 0, 0.65);
+  z-index: -2;
+}
+.ambient-glow {
+  position: fixed;
+  bottom: -15%;
+  left: 10%;
+  width: 70vw;
+  height: 60vh;
+  background: radial-gradient(
+    circle, 
+    rgba(255, 51, 0, 0.15) 0%, 
+    rgba(255, 107, 0, 0.05) 55%, 
+    rgba(0, 0, 0, 0) 80%
+  );
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: -1;
+}
+/* App Container Layout */
+.app-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/* ==========================================================================
+   Header Elements & Navigation
+   ========================================================================== */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 107, 0, 0.2);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+/* Logo Design */
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fire-logo-icon {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, #ff6b00 20%, #ff3300 100%);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid var(--accent-gold);
+  box-shadow: var(--glow-orange);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+.logo-glow {
+  font-size: calc(var(--body-size) * 1.5);
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(255,255,255,0.8);
+  animation: flameFlicker 1.5s ease infinite alternate;
+}
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+.logo-title {
+  font-family: var(--font-fantasy);
+  font-size: var(--title-size);
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #FFF 20%, var(--accent-gold) 60%, var(--fire-orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.8));
+  line-height: 1.1;
+}
+.logo-subtitle {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 0.7);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+/* Navigation System */
+.navigation-bar ul {
+  display: flex;
+  list-style: none;
+  gap: 10px;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}
+.nav-tab {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 8px;
+}
+.nav-tab a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 700;
+  font-family: var(--font-fantasy);
+  font-size: var(--navbar-size);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all 0.3s ease;
+}
+/* Tab Hover */
+.nav-tab:hover {
+  background: rgba(255, 107, 0, 0.15);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
+}
+.nav-tab:hover a {
+  color: var(--fire-orange);
+  text-shadow: 0 0 8px rgba(255, 107, 0, 0.6);
+}
+/* Active Tab */
+.nav-tab.active {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.25) 0%, rgba(255, 51, 0, 0.15) 100%);
+  border: 1px solid var(--fire-orange);
+  box-shadow: 0 0 15px rgba(255, 107, 0, 0.45), inset 0 0 10px rgba(255, 107, 0, 0.25);
+}
+.nav-tab.active a {
+  color: var(--accent-gold);
+  text-shadow: 0 0 12px rgba(255, 170, 0, 0.8);
+}
+/* ==========================================================================
+   Content Layout Panels (Sidebar & Main content)
+   ========================================================================== */
+.content-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+  flex: 1;
+}
+/* Glassmorphism Panel Template */
+.glass-panel {
+  background: var(--dark-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  padding: 24px;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+}
+/* Sidebar: Trainer Stats */
+.trainer-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-self: start;
+}
+.trainer-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.trainer-avatar-container {
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
+.avatar-ring {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  border: 2px dashed var(--fire-orange);
+  animation: rotateClockwise 20s linear infinite;
+}
+.trainer-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.trainer-info {
+  display: flex;
+  flex-direction: column;
+}
+.trainer-name {
+  font-family: var(--font-fantasy);
+  font-weight: 800;
+  font-size: calc(var(--heading-size) * 0.65);
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  text-shadow: 0 0 5px rgba(255,255,255,0.15);
+}
+.trainer-class {
+  font-size: calc(var(--body-size) * 0.75);
+  color: var(--fire-orange);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+.trainer-stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+/* XP Bar Display */
+.xp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 107, 0, 0.15);
+}
+.level-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--flame-red) 0%, var(--fire-orange) 100%);
+  border: 1.5px solid var(--accent-gold);
+  border-radius: 10px;
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 0 8px rgba(255, 107, 0, 0.4);
+}
+.level-label {
+  font-size: calc(var(--body-size) * 0.6);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+.level-number {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 1.15);
+  font-weight: 800;
+  line-height: 1;
+}
+.xp-details {
+  flex: 1;
+}
+.xp-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: calc(var(--body-size) * 0.75);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.xp-values {
+  color: var(--text-primary);
+}
+.xp-bar-container {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 0.5px solid rgba(255,255,255,0.05);
+}
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--fire-orange), var(--accent-gold));
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(255, 170, 0, 0.5);
+  transition: width 0.6s cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+/* Currency Counters */
+.currency-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 107, 0, 0.15);
+}
+.currency-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--body-size);
+}
+.currency-icon.gold {
+  background: rgba(255, 170, 0, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid rgba(255, 170, 0, 0.3);
+}
+.currency-icon.amber {
+  background: rgba(255, 107, 0, 0.15);
+  color: var(--fire-orange);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+.currency-info-box {
+  display: flex;
+  flex-direction: column;
+}
+.currency-val {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 0.95);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.currency-lbl {
+  font-size: calc(var(--body-size) * 0.65);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+/* Badges section */
+.panel-subtitle {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 0.75);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.badge-item {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: calc(var(--body-size) * 1.1);
+  cursor: help;
+  transition: all 0.3s ease;
+}
+.badge-item.active {
+  background: rgba(255, 107, 0, 0.05);
+  border-color: rgba(255, 107, 0, 0.3);
+}
+.badge-icon {
+  transition: transform 0.3s ease;
+}
+.badge-item:hover .badge-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+.boulder { color: #8e908f; }
+.cascade { color: #2e8bfa; }
+.thunder { color: #fad12c; }
+.rainbow { color: #ee2efa; }
+.soul { color: #8636e0; }
+.marsh { color: #eb286c; }
+.volcano { color: #f24118; }
+.earth { color: #5c3518; }
+.badge-item.locked {
+  opacity: 0.25;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}
+.badge-item.glow-fire {
+  border-color: var(--fire-orange);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.4);
+  background: rgba(255, 107, 0, 0.12);
+  animation: fireItemGlow 2s ease infinite alternate;
+}
+/* Buttons */
+.btn {
+  font-family: var(--font-interface);
+  font-weight: 700;
+  font-size: calc(var(--body-size) * 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-block {
+  width: 100%;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--flame-red) 0%, var(--fire-orange) 100%);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-gold);
+  box-shadow: 0 4px 15px rgba(255, 51, 0, 0.3);
+  font-family: var(--font-fantasy);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5), var(--glow-gold);
+  border-color: #FFF;
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-fantasy);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.btn-post-quest {
+  margin-top: auto;
+  border-style: dashed;
+}
+/* ==========================================================================
+   Main Panel: Quest Board Header & Controls
+   ========================================================================== */
+.quest-board-main {
+  display: flex;
+  flex-direction: column;
+}
+.section-title-area {
+  margin-bottom: 24px;
+}
+.section-code {
+  font-family: monospace;
+  font-size: calc(var(--body-size) * 0.75);
+  letter-spacing: 2px;
+  color: var(--fire-orange);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.scroll-icon {
+  font-size: calc(var(--heading-size) * 0.75);
+  color: var(--accent-gold);
+  filter: drop-shadow(0 0 5px rgba(255, 170, 0, 0.5));
+}
+.section-title {
+  font-family: var(--font-fantasy);
+  font-size: var(--heading-size);
+  color: var(--text-primary);
+  text-shadow: 0 0 12px rgba(255, 107, 0, 0.55);
+}
+/* Controls (Filters / Search) */
+.controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.search-sort-row {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 16px;
+}
+.control-label {
+  font-family: var(--font-fantasy);
+  display: block;
+  font-size: calc(var(--body-size) * 0.7);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.fire-search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--fire-orange);
+  font-size: calc(var(--body-size) * 0.95);
+  animation: flameFlicker 1.2s ease infinite alternate;
+}
+.dark-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px 12px 40px;
+  font-family: var(--font-interface);
+  font-size: calc(var(--body-size) * 0.9);
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.3s ease;
+}
+.dark-input:focus {
+  border-color: var(--fire-orange);
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.55);
+  background: rgba(0, 0, 0, 0.75);
+}
+.select-container {
+  position: relative;
+}
+.dark-select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  border-radius: 10px;
+  padding: 12px 35px 12px 14px;
+  font-family: var(--font-interface);
+  font-size: calc(var(--body-size) * 0.9);
+  color: var(--text-primary);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.dark-select:focus {
+  border-color: var(--fire-orange);
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.55);
+  background: rgba(0, 0, 0, 0.75);
+}
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: calc(var(--body-size) * 0.8);
+  pointer-events: none;
+}
+.filter-chips-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-chip {
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 0.8);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.filter-chip.active {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.25) 0%, rgba(255, 170, 0, 0.12) 100%);
+  border-color: var(--fire-orange);
+  color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.35);
+}
+.quest-summary-text {
+  font-size: calc(var(--body-size) * 0.85);
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.highlight-fire {
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+/* ==========================================================================
+   Quests Grid & Quest Cards UI
+   ========================================================================== */
+.quests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+.quest-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 230px;
+  animation: cardEntrance 0.5s cubic-bezier(0.1, 0.8, 0.3, 1) both;
+}
+.quest-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 12px 30px rgba(255, 107, 0, 0.35); /* Increased card fire-glow */
+  transform: translateY(-4px);
+}
+.quest-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--fire-orange);
+}
+.quest-card.cat-battle::before { background: var(--flame-red); }
+.quest-card.cat-catch::before { background: var(--fire-orange); }
+.quest-card.cat-exploration::before { background: var(--accent-gold); }
+.quest-card.cat-evolution::before { background: #ee2efa; }
+.status-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: calc(var(--body-size) * 0.65);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: var(--font-fantasy);
+}
+.status-badge.claimed {
+  background: rgba(142, 46, 250, 0.25);
+  color: #c99cff;
+  border: 1px solid rgba(142, 46, 250, 0.45);
+}
+.status-badge.completed {
+  background: rgba(46, 250, 114, 0.18);
+  color: #8cffd1;
+  border: 1px solid rgba(46, 250, 114, 0.45);
+  animation: pulseGreen 2.5s ease-in-out infinite;
+}
+.quest-card-header {
+  margin-bottom: 12px;
+  padding-right: 65px;
+}
+.quest-id {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 0.65);
+  color: var(--fire-orange);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  display: block;
+}
+.quest-title {
+  font-size: var(--card-title-size);
+  font-weight: 700; /* Bold and modern title requirement */
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.quest-progress-section {
+  margin-top: auto;
+  margin-bottom: 18px;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: calc(var(--body-size) * 0.75);
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.progress-pct {
+  font-family: var(--font-fantasy);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+/* Lava Progress Bar */
+.lava-progress-container {
+  height: 10px;
+  background: var(--lava-dark);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 107, 0, 0.25);
+}
+.lava-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg, 
+    var(--flame-red) 0%, 
+    var(--fire-orange) 30%, 
+    var(--accent-gold) 50%, 
+    var(--fire-orange) 70%, 
+    var(--flame-red) 100%
+  );
+  background-size: 300% 100%;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(255, 51, 0, 0.8), 0 0 4px rgba(255, 170, 0, 0.6);
+  transition: width 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
+  animation: lavaFlow 3.5s linear infinite;
+}
+.quest-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255, 107, 0, 0.25);
+}
+.rewards-list {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.reward-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: calc(var(--body-size) * 0.72);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.reward-pill i.gold { color: var(--accent-gold); }
+.reward-pill i.xp { color: var(--fire-orange); }
+.reward-pill i.item { color: #ee2efa; }
+.quest-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-mini {
+  padding: 6px 10px;
+  font-size: calc(var(--body-size) * 0.65);
+  border-radius: 5px;
+  font-weight: 800;
+}
+.btn-progress-sim {
+  background: rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  color: var(--fire-orange);
+  font-family: var(--font-fantasy);
+}
+.btn-progress-sim:hover {
+  background: var(--fire-orange);
+  color: var(--text-dark);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.4);
+}
+.btn-claim-reward {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--fire-orange) 100%);
+  border: 1px solid #FFF;
+  color: var(--text-dark);
+  font-family: var(--font-fantasy);
+  animation: pulseGoldGlow 1.5s infinite alternate;
+}
+.btn-claim-reward:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--accent-gold);
+}
+/* ==========================================================================
+   Rewards Shop Panel Component Styling
+   ========================================================================== */
+.rewards-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.rewards-header-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.15) 0%, rgba(255, 51, 0, 0.05) 100%);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+}
+.rewards-banner-text h3 {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--heading-size) * 0.7);
+  color: var(--accent-gold);
+  margin-bottom: 4px;
+}
+.rewards-banner-text p {
+  font-size: calc(var(--body-size) * 0.85);
+  color: var(--text-muted);
+}
+.gift-banner-icon {
+  font-size: calc(var(--heading-size) * 1.5);
+  color: var(--fire-orange);
+  animation: logoPulse 2.5s ease-in-out infinite;
+}
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+.reward-item-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: 30px 20px 20px 20px;
+}
+.reward-badge-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: calc(var(--body-size) * 0.6);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--fire-orange);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+  border-radius: 4px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  font-family: var(--font-fantasy);
+}
+.reward-media {
+  width: 70px;
+  height: 70px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+  border: 1.5px solid rgba(255, 107, 0, 0.15);
+}
+.reward-large-icon {
+  font-size: calc(var(--heading-size) * 1.1);
+}
+.reward-large-icon.rare-candy { color: #8cffd1; }
+.reward-large-icon.master-ball { color: #c99cff; }
+.reward-large-icon.fire-stone { color: var(--fire-orange); }
+.reward-large-icon.max-potion { color: #ff5e5e; }
+.reward-item-info h4 {
+  font-family: var(--font-fantasy);
+  font-size: var(--card-title-size);
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+.reward-item-info p {
+  font-size: calc(var(--body-size) * 0.78);
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reward-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 14px;
+  gap: 16px;
+}
+.price-val {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 0.95);
+  font-weight: 800;
+  color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-reward-buy {
+  background: rgba(255, 170, 0, 0.1);
+  border: 1px solid rgba(255, 170, 0, 0.35);
+  color: var(--accent-gold);
+  padding: 6px 12px;
+  font-size: calc(var(--body-size) * 0.72);
+  border-radius: 6px;
+  font-family: var(--font-fantasy);
+}
+.btn-reward-buy:hover {
+  background: var(--accent-gold);
+  color: var(--text-dark);
+}
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal-content {
+  width: 500px;
+  max-width: 95%;
+  transform: translateY(30px);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-color: rgba(255, 107, 0, 0.4);
+}
+.modal-overlay.open .modal-content {
+  transform: translateY(0);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 107, 0, 0.25);
+}
+.modal-header h3 {
+  font-family: var(--font-fantasy);
+  font-size: calc(var(--body-size) * 1.25);
+  color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: calc(var(--body-size) * 1.8);
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover {
+  color: var(--flame-red);
+}
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-size: calc(var(--body-size) * 0.75);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 12px;
+}
+.rewards-config-title {
+  font-size: calc(var(--body-size) * 0.75);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--fire-orange);
+  margin-top: 10px;
+  border-bottom: 1px solid rgba(255, 107, 0, 0.1);
+  padding-bottom: 4px;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 107, 0, 0.1);
+}
+/* Toast Notifications */
+.notification-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(18, 18, 18, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--fire-orange);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1000;
+  transform: translateX(120%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.notification-toast.show {
+  transform: translateX(0);
+}
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 107, 0, 0.1);
+  color: var(--fire-orange);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: calc(var(--body-size) * 0.9);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+.notification-text h5 {
+  font-size: calc(var(--body-size) * 0.9);
+  font-weight: 700;
+}
+.notification-text p {
+  font-size: calc(var(--body-size) * 0.75);
+  color: var(--text-muted);
+}
+.hidden {
+  display: none !important;
+}
+/* Keyframes & Animations */
+@keyframes logoPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 107, 0, 0.8);
+  }
+}
+@keyframes flameFlicker {
+  0% { transform: scale(1) rotate(-2deg); opacity: 0.9; }
+  50% { transform: scale(1.08) rotate(3deg); opacity: 1; }
+  100% { transform: scale(0.95) rotate(-1deg); opacity: 0.85; }
+}
+@keyframes rotateClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes fireItemGlow {
+  0% {
+    box-shadow: 0 0 8px rgba(255, 107, 0, 0.3);
+    border-color: rgba(255, 107, 0, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 18px rgba(255, 107, 0, 0.7);
+    border-color: var(--fire-orange);
+  }
+}
+@keyframes lavaFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes pulseGoldGlow {
+  from {
+    box-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(255, 170, 0, 0.9);
+  }
+}
+@keyframes pulseGreen {
+  0%, 100% { box-shadow: 0 0 5px rgba(46, 250, 114, 0.25); }
+  50% { box-shadow: 0 0 15px rgba(46, 250, 114, 0.6); }
+}
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* Tablet Styles */
+  .content-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .trainer-sidebar {
+    width: 100%;
+    align-self: stretch;
+  }
+}
+@media (max-width: 768px) {
+  /* Mobile Styles */
+  .main-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .logo-area {
+    justify-content: center;
+  }
+  
+  .navigation-bar ul {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .nav-tab a {
+    padding: 10px 14px;
+    font-size: calc(var(--navbar-size) * 0.85);
+  }
+  
+  .search-sort-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-container {
+    padding: 12px;
+  }
+}
+===== script.js =====
+
+javascript
+
+
+/* ==========================================================================
+   Pokémon Nexus - Application & Particles Core Engine
+   ========================================================================== */
+/* 
+  ==========================================================================
+  [CUSTOMIZATION] BACKGROUND IMAGE: CHANGE THIS VARIABLE TO ANY LOCAL PATH OR URL
+  ========================================================================== 
+  Example: const backgroundImage = "images/blaziken-fire.jpg";
+  Change this value to load any Pokémon picture as the main background.
+*/
+const backgroundImage = "images/blaziken-fire.jpg";
+/* 
+  ==========================================================================
+  [CUSTOMIZATION] APPLICATION NAME DETAILS:
+  To customize the name from "Pokémon Nexus":
+  1. Edit the <title> tag in index.html (line 9)
+  2. Edit the <h1> logo tag in index.html (line 35)
+  3. Edit the <h2> page title tag in index.html (line 144)
+  4. Edit the currentTab switch references in script.js (lines 280-305)
+  ========================================================================== 
+*/
+// Apply the background image when the page loads
+document.addEventListener("DOMContentLoaded", () => {
+  const bgOverlay = document.getElementById("bg-image-overlay");
+  if (bgOverlay && backgroundImage) {
+    bgOverlay.style.backgroundImage = `url('${backgroundImage}')`;
+  }
+  
+  // Initialize Particles & Core Systems
+  initParticles();
+  initApp();
+});
+/* ==========================================================================
+   CANVAS EMBER PHYSICS SYSTEM (Animated Fire Particles)
+   ========================================================================== */
+function initParticles() {
+  const canvas = document.getElementById("particles-canvas");
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext("2d");
+  let width = (canvas.width = window.innerWidth);
+  let height = (canvas.height = window.innerHeight);
+  
+  const particles = [];
+  const maxParticles = 60; // Optimal count for smooth performance
+  
+  // Particle Entity
+  class Ember {
+    constructor() {
+      this.reset();
+      this.y = Math.random() * height; // Distribute vertically at start
+    }
+    
+    reset() {
+      this.x = Math.random() * width;
+      this.y = height + Math.random() * 20; // Spawn slightly below bottom
+      this.size = Math.random() * 3 + 1.2; // Small drifting particles
+      this.speedY = -(Math.random() * 1.5 + 0.5); // Floating velocity
+      this.speedX = Math.random() * 1 - 0.5; // Gentle side-drift
+      this.alpha = 1;
+      this.decay = Math.random() * 0.008 + 0.003; // Fade out duration
+      
+      const colors = [
+        "rgba(255, 107, 0, ",  // Fire Orange
+        "rgba(255, 51, 0, ",   // Flame Red
+        "rgba(255, 170, 0, ",  // Gold Glow
+        "rgba(255, 220, 100, " // Sparks
+      ];
+      this.colorBase = colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    update() {
+      this.x += this.speedX + Math.sin(this.y / 30) * 0.2; // Drifting wave math
+      this.y += this.speedY;
+      this.alpha -= this.decay;
+      
+      if (this.alpha <= 0 || this.y < -10) {
+        this.reset();
+      }
+    }
+    
+    draw() {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      
+      // Fire particle glow
+      ctx.shadowBlur = this.size * 3;
+      ctx.shadowColor = "rgba(255, 107, 0, 0.8)";
+      
+      ctx.fillStyle = this.colorBase + this.alpha + ")";
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  
+  // Populate Particle Array
+  for (let i = 0; i < maxParticles; i++) {
+    particles.push(new Ember());
+  }
+  
+  // Canvas Loop
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    
+    for (let i = 0; i < particles.length; i++) {
+      particles[i].update();
+      particles[i].draw();
+    }
+    
+    requestAnimationFrame(animate);
+  }
+  
+  animate();
+  
+  // Responsive resize
+  window.addEventListener("resize", () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  });
+}
+/* ==========================================================================
+   APP STATE & CONTROL FLOW
+   ========================================================================== */
+// Profile Stats State
+const trainerState = {
+  level: 28,
+  xp: 4200,
+  maxXp: 5000,
+  coins: 1450,
+  careerXp: 9800
+};
+// Initial Bounties Database
+let quests = [
+  {
+    id: 1,
+    title: "Catch 5 Pokémon",
+    current: 5,
+    target: 5,
+    category: "catch",
+    xpReward: 0,
+    coinsReward: 100,
+    itemReward: "",
+    claimed: true
+  },
+  {
+    id: 2,
+    title: "Win 3 Battles",
+    current: 3,
+    target: 3,
+    category: "battle",
+    xpReward: 50,
+    coinsReward: 200,
+    itemReward: "",
+    claimed: true
+  },
+  {
+    id: 3,
+    title: "Explore Kanto Region",
+    current: 8,
+    target: 8,
+    category: "exploration",
+    xpReward: 0,
+    coinsReward: 0,
+    itemReward: "Rare Candy",
+    claimed: true
+  },
+  {
+    id: 4,
+    title: "Defeat Gym Leader Blaine",
+    current: 0,
+    target: 1,
+    category: "battle",
+    xpReward: 250,
+    coinsReward: 500,
+    itemReward: "Fire Stone",
+    claimed: false
+  },
+  {
+    id: 5,
+    title: "Evolve Charmander",
+    current: 0,
+    target: 1,
+    category: "evolution",
+    xpReward: 100,
+    coinsReward: 150,
+    itemReward: "",
+    claimed: false
+  },
+  {
+    id: 6,
+    title: "Catch 3 Fire-type Pokémon",
+    current: 1,
+    target: 3,
+    category: "catch",
+    xpReward: 75,
+    coinsReward: 150,
+    itemReward: "",
+    claimed: false
+  }
+];
+// Navigation State
+let currentTab = "dashboard";
+let currentFilter = "all";
+let searchQuery = "";
+let sortBy = "default";
+function initApp() {
+  // DOM Elements
+  const tabs = document.querySelectorAll(".nav-tab");
+  const filterChips = document.querySelectorAll(".filter-chip");
+  const searchInput = document.getElementById("quest-search");
+  const sortSelect = document.getElementById("quest-sort");
+  
+  // Modal DOM
+  const openModalBtn = document.getElementById("btn-open-modal");
+  const closeModalBtn = document.getElementById("btn-close-modal");
+  const cancelModalBtn = document.getElementById("btn-cancel-modal");
+  const modalOverlay = document.getElementById("quest-modal");
+  const newQuestForm = document.getElementById("new-quest-form");
+  
+  // Tab Event Listeners
+  tabs.forEach(tab => {
+    tab.addEventListener("click", (e) => {
+      e.preventDefault();
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      
+      const tabName = tab.getAttribute("data-tab");
+      switchTab(tabName);
+    });
+  });
+  
+  // Filter Chip Listeners
+  filterChips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      filterChips.forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentFilter = chip.getAttribute("data-filter");
+      applyFilters();
+    });
+  });
+  
+  // Filter Search & Sort Event Listeners
+  searchInput.addEventListener("input", (e) => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    applyFilters();
+  });
+  
+  sortSelect.addEventListener("change", (e) => {
+    sortBy = e.target.value;
+    applyFilters();
+  });
+  
+  // Modal Interactions
+  openModalBtn.addEventListener("click", () => modalOverlay.classList.add("open"));
+  
+  const closeModal = () => modalOverlay.classList.remove("open");
+  closeModalBtn.addEventListener("click", closeModal);
+  cancelModalBtn.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+  
+  // Bounty Creation Form Submission
+  newQuestForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    
+    const title = document.getElementById("quest-title-input").value;
+    const target = parseInt(document.getElementById("quest-target-input").value);
+    const category = document.getElementById("quest-category-select").value;
+    const xpReward = parseInt(document.getElementById("quest-xp-reward").value) || 0;
+    const coinsReward = parseInt(document.getElementById("quest-coins-reward").value) || 0;
+    const itemReward = document.getElementById("quest-item-reward").value;
+    
+    const newQuest = {
+      id: Date.now(),
+      title,
+      current: 0,
+      target,
+      category,
+      xpReward,
+      coinsReward,
+      itemReward,
+      claimed: false
+    };
+    
+    quests.push(newQuest);
+    newQuestForm.reset();
+    closeModal();
+    
+    showToast("Bounty Posted", `"${title}" has been published to Pokémon Nexus.`, "fa-scroll");
+    applyFilters();
+  });
+  
+  // Buy Shop Rewards
+  const buyBtns = document.querySelectorAll(".btn-reward-buy");
+  buyBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const item = btn.getAttribute("data-item");
+      const price = parseInt(btn.getAttribute("data-price"));
+      purchaseReward(item, price);
+    });
+  });
+  
+  // Render Initial View
+  updateTrainerUI();
+  applyFilters();
+}
+/* ==========================================================================
+   TAB VIEW ROUTER & DATA FILTERING
+   ========================================================================== */
+function switchTab(tabName) {
+  currentTab = tabName;
+  
+  const controlsPanel = document.querySelector(".controls-panel");
+  const questSummaryText = document.querySelector(".quest-summary-text");
+  const questsGrid = document.getElementById("quests-grid");
+  const rewardsPanel = document.getElementById("rewards-panel-content");
+  const sectionTitle = document.getElementById("main-section-title");
+  const sectionCode = document.querySelector(".section-code");
+  
+  if (tabName === "rewards") {
+    // Render Rewards shop
+    sectionTitle.textContent = "Rewards Cache";
+    sectionCode.textContent = "// NEXUS_VAULT";
+    controlsPanel.classList.add("hidden");
+    questSummaryText.classList.add("hidden");
+    questsGrid.classList.add("hidden");
+    rewardsPanel.classList.remove("hidden");
+  } else {
+    // Render Pokémon Nexus Bounties list
+    sectionTitle.textContent = "Pokémon Nexus";
+    sectionCode.textContent = "// POKEMON_NEXUS";
+    controlsPanel.classList.remove("hidden");
+    questSummaryText.classList.remove("hidden");
+    questsGrid.classList.remove("hidden");
+    rewardsPanel.classList.add("hidden");
+    
+    applyFilters();
+  }
+}
+// Search, Chip-filters, and Dropdown Sorter compilation
+function applyFilters() {
+  if (currentTab === "rewards") return;
+  
+  let result = [...quests];
+  
+  // 1. Tab Router Filters
+  if (currentTab === "active-missions") {
+    result = result.filter(q => q.current < q.target);
+  } else if (currentTab === "completed") {
+    result = result.filter(q => q.current === q.target);
+  }
+  
+  // 2. Chip Status Filter
+  if (currentFilter === "pending") {
+    result = result.filter(q => q.current === 0);
+  } else if (currentFilter === "active") {
+    result = result.filter(q => q.current > 0 && q.current < q.target);
+  } else if (currentFilter === "completed") {
+    result = result.filter(q => q.current === q.target);
+  }
+  
+  // 3. Text Search Query
+  if (searchQuery !== "") {
+    result = result.filter(q => q.title.toLowerCase().includes(searchQuery));
+  }
+  
+  // 4. Dropdown Sorting Logic
+  if (sortBy === "progress-desc") {
+    result.sort((a, b) => (b.current / b.target) - (a.current / a.target));
+  } else if (sortBy === "progress-asc") {
+    result.sort((a, b) => (a.current / a.target) - (b.current / b.target));
+  } else if (sortBy === "xp-desc") {
+    result.sort((a, b) => b.xpReward - a.xpReward);
+  } else if (sortBy === "coins-desc") {
+    result.sort((a, b) => b.coinsReward - a.coinsReward);
+  }
+  
+  renderQuests(result);
+  
+  document.getElementById("filtered-count").textContent = result.length;
+  document.getElementById("total-count").textContent = quests.length;
+}
+/* ==========================================================================
+   DYNAMIC RENDERING & DOM BUILDERS
+   ========================================================================== */
+function renderQuests(filteredList) {
+  const grid = document.getElementById("quests-grid");
+  grid.innerHTML = "";
+  
+  if (filteredList.length === 0) {
+    grid.innerHTML = `
+      <div class="glass-panel no-quests-msg" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+        <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 12px; color: var(--fire-orange);"></i>
+        <p>No active bounties match your filter criteria.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  filteredList.forEach((quest, index) => {
+    const isCompleted = quest.current >= quest.target;
+    const progressPct = Math.min(100, Math.floor((quest.current / quest.target) * 100));
+    
+    const card = document.createElement("div");
+    card.className = `quest-card glass-panel cat-${quest.category}`;
+    card.style.animationDelay = `${index * 0.05}s`;
+    
+    // Badge Tag Markup
+    let statusBadgeHTML = "";
+    if (quest.claimed) {
+      statusBadgeHTML = `<span class="status-badge claimed">Claimed</span>`;
+    } else if (isCompleted) {
+      statusBadgeHTML = `<span class="status-badge completed">Completed</span>`;
+    }
+    
+    // Rewards List Markup
+    let rewardsHTML = "";
+    if (quest.coinsReward > 0) {
+      rewardsHTML += `<div class="reward-pill" title="Gold coins"><i class="fa-solid fa-coins gold"></i> ${quest.coinsReward}</div>`;
+    }
+    if (quest.xpReward > 0) {
+      rewardsHTML += `<div class="reward-pill" title="Experience"><i class="fa-solid fa-cubes xp"></i> ${quest.xpReward} XP</div>`;
+    }
+    if (quest.itemReward) {
+      let itemIcon = "fa-cookie-bite";
+      if (quest.itemReward === "Master Ball") itemIcon = "fa-circle-dot";
+      if (quest.itemReward === "Fire Stone") itemIcon = "fa-gem";
+      if (quest.itemReward === "Hyper Potion") itemIcon = "fa-flask";
+      rewardsHTML += `<div class="reward-pill" title="${quest.itemReward}"><i class="fa-solid ${itemIcon} item"></i> ${quest.itemReward}</div>`;
+    }
+    
+    // Actions markup (simulations & claiming)
+    let actionsHTML = "";
+    if (quest.claimed) {
+      actionsHTML = `<span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;"><i class="fa-solid fa-circle-check"></i> Claimed</span>`;
+    } else if (isCompleted) {
+      actionsHTML = `<button class="btn btn-mini btn-claim-reward" onclick="claimQuestReward(${quest.id})"><i class="fa-solid fa-gift"></i> Claim</button>`;
+    } else {
+      actionsHTML = `<button class="btn btn-mini btn-progress-sim" onclick="simulateProgress(${quest.id})"><i class="fa-solid fa-bolt"></i> + Progress</button>`;
+    }
+    
+    card.innerHTML = `
+      ${statusBadgeHTML}
+      <div class="quest-card-header">
+        <span class="quest-id">BOUNTY #${quest.id.toString().slice(-4)}</span>
+        <h3 class="quest-title">${quest.title}</h3>
+      </div>
+      
+      <div class="quest-progress-section">
+        <div class="progress-header">
+          <span>${quest.current} / ${quest.target}</span>
+          <span class="progress-pct">${progressPct}%</span>
+        </div>
+        <div class="lava-progress-container">
+          <div class="lava-progress-fill" style="width: ${progressPct}%;"></div>
+        </div>
+      </div>
+      
+      <div class="quest-card-footer">
+        <div class="rewards-list">
+          ${rewardsHTML}
+        </div>
+        <div class="quest-actions">
+          ${actionsHTML}
+        </div>
+      </div>
+    `;
+    
+    grid.appendChild(card);
+  });
+}
+/* ==========================================================================
+   SIMULATION, LEVEL LOGIC, AND CLAIMS
+   ========================================================================== */
+// Simulated Progress Action Click
+window.simulateProgress = function(questId) {
+  const quest = quests.find(q => q.id === questId);
+  if (!quest) return;
+  
+  if (quest.current < quest.target) {
+    quest.current++;
+    triggerImpactFlash();
+    
+    if (quest.current === quest.target) {
+      showToast("Bounty Completed", `Bounty "${quest.title}" is ready to claim!`, "fa-award");
+    }
+    applyFilters();
+  }
+};
+// Claiming Rewards
+window.claimQuestReward = function(questId) {
+  const quest = quests.find(q => q.id === questId);
+  if (!quest || quest.claimed || quest.current < quest.target) return;
+  
+  quest.claimed = true;
+  trainerState.coins += quest.coinsReward;
+  trainerState.xp += quest.xpReward;
+  trainerState.careerXp += quest.xpReward;
+  
+  // Level Up check!
+  let levelUpMsg = "";
+  if (trainerState.xp >= trainerState.maxXp) {
+    trainerState.level++;
+    trainerState.xp -= trainerState.maxXp;
+    trainerState.maxXp += 1000;
+    levelUpMsg = ` Level Up! Reached level ${trainerState.level}!`;
+    triggerLevelUpBurst();
+  }
+  
+  // Activate/glow Volcano badge upon Blaine defeat
+  if (quest.title === "Defeat Gym Leader Blaine") {
+    const volcanoBadge = document.querySelector(".badge-item.volcano");
+    if (volcanoBadge) {
+      volcanoBadge.parentElement.classList.remove("glow-fire");
+      volcanoBadge.parentElement.style.borderColor = "var(--accent-gold)";
+      volcanoBadge.parentElement.style.boxShadow = "var(--glow-gold)";
+    }
+  }
+  
+  updateTrainerUI();
+  applyFilters();
+  
+  let rewardsSummary = "";
+  if (quest.coinsReward > 0) rewardsSummary += `${quest.coinsReward} Coins`;
+  if (quest.xpReward > 0) rewardsSummary += `${rewardsSummary ? ", " : ""}${quest.xpReward} XP`;
+  if (quest.itemReward) {
+    rewardsSummary += `${rewardsSummary ? ", " : ""}${quest.itemReward}`;
+    showToast("Bonus Looted", `Unlocked 1x ${quest.itemReward}!`, "fa-gift");
+  }
+  
+  showToast("Bounty Claimed", `Collected ${rewardsSummary}.${levelUpMsg}`, "fa-trophy");
+};
+// Purchase shop rewards
+function purchaseReward(itemName, price) {
+  if (trainerState.coins >= price) {
+    trainerState.coins -= price;
+    updateTrainerUI();
+    showToast("Purchase Complete", `Exchanged ${price} Coins for 1x ${itemName}.`, "fa-bag-shopping");
+  } else {
+    showToast("Insufficient Coins", "Complete more bounties to earn Gold Coins!", "fa-circle-xmark");
+  }
+}
+// Synchronize Trainer sidebar counters
+function updateTrainerUI() {
+  document.getElementById("trainer-level").textContent = trainerState.level;
+  document.getElementById("trainer-coins").textContent = trainerState.coins.toLocaleString();
+  document.getElementById("trainer-xp-earned").textContent = trainerState.careerXp.toLocaleString();
+  document.getElementById("current-xp").textContent = trainerState.xp.toLocaleString();
+  document.getElementById("max-xp").textContent = trainerState.maxXp.toLocaleString();
+  
+  const xpPct = Math.min(100, (trainerState.xp / trainerState.maxXp) * 100);
+  document.getElementById("xp-bar-fill").style.width = `${xpPct}%`;
+}
+/* ==========================================================================
+   VISUAL DECORATION AND ALERT FEEDBACK
+   ========================================================================== */
+function showToast(title, message, iconClass = "fa-check") {
+  const toast = document.getElementById("notification-toast");
+  const titleEl = document.getElementById("notif-title");
+  const msgEl = document.getElementById("notif-message");
+  const iconEl = document.getElementById("notif-icon");
+  
+  iconEl.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+  
+  toast.classList.add("show");
+  
+  if (window.toastTimeout) {
+    clearTimeout(window.toastTimeout);
+  }
+  
+  window.toastTimeout = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 4000);
+}
+// Glowing screen pulse effect
+function triggerImpactFlash() {
+  const glow = document.querySelector(".ambient-glow");
+  glow.style.transform = "scale(1.2)";
+  glow.style.background = "radial-gradient(circle, rgba(255, 107, 0, 0.25) 0%, rgba(255, 51, 0, 0.08) 50%, rgba(0, 0, 0, 0) 80%)";
+  
+  setTimeout(() => {
+    glow.style.transform = "scale(1)";
+    glow.style.background = "radial-gradient(circle, rgba(255, 51, 0, 0.12) 0%, rgba(255, 107, 0, 0.04) 55%, rgba(0, 0, 0, 0) 80%)";
+  }, 300);
+}
+// Radial overlay flash upon leveling up
+function triggerLevelUpBurst() {
+  const body = document.body;
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.background = "radial-gradient(circle, rgba(255, 170, 0, 0.4) 0%, rgba(255, 51, 0, 0.2) 60%, rgba(0,0,0,0) 100%)";
+  overlay.style.zIndex = "999";
+  overlay.style.pointerEvents = "none";
+  overlay.style.opacity = "1";
+  overlay.style.transition = "opacity 1s ease";
+  
+  body.appendChild(overlay);
+  
+  setTimeout(() => {
+    overlay.style.opacity = "0";
+    setTimeout(() => overlay.remove(), 1000);
+  }, 100);
+}
