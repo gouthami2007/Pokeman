@@ -1,0 +1,753 @@
+
+Pokemon fire inventory · HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Kingdom — Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-void: #0a0b10;
+    --bg-deep: #0f1018;
+    --bg-panel: #141520;
+    --bg-card: #191b2a;
+    --bg-hover: #1e2035;
+    --border-dim: rgba(120,130,200,0.12);
+    --border-mid: rgba(120,130,200,0.25);
+    --border-accent: rgba(140,120,255,0.4);
+    --gold: #e8c96a;
+    --gold-dim: #a8893a;
+    --purple: #9b6fff;
+    --purple-dim: #5a3fa8;
+    --cyan: #4dd9e8;
+    --cyan-dim: #1a7a85;
+    --red: #ff5566;
+    --green: #4ddb8a;
+    --amber: #ffb347;
+    --text-primary: #e8eaf6;
+    --text-secondary: #8890bb;
+    --text-muted: #4a5080;
+    --rarity-common: #8890bb;
+    --rarity-uncommon: #4ddb8a;
+    --rarity-rare: #4dd9e8;
+    --rarity-epic: #9b6fff;
+    --rarity-legendary: #e8c96a;
+    --font-display: 'Orbitron', monospace;
+    --font-body: 'Rajdhani', sans-serif;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: url("pokemon.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 15px;
+    min-height: 100vh;
+  }
+ 
+  .fire-bg-overlay {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 110%, rgba(255,80,0,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 20% 100%, rgba(255,140,0,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 80% 100%, rgba(220,40,0,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 20% at 50% 100%, rgba(255,60,0,0.22) 0%, transparent 50%);
+  }
+  .lava-horizon {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 120px;
+    z-index: 0; pointer-events: none;
+    background: linear-gradient(to top, rgba(255,80,0,0.25) 0%, rgba(255,140,0,0.12) 40%, transparent 100%);
+    animation: lavaFlicker 4s ease-in-out infinite alternate;
+  }
+  @keyframes lavaFlicker {
+    0%   { opacity: 0.7; } 30%  { opacity: 1.0; } 60%  { opacity: 0.8; } 100% { opacity: 0.6; }
+  }
+  #particle-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+ 
+  /* NAV */
+  .topbar {
+    background: var(--bg-deep); border-bottom: 1px solid var(--border-dim);
+    padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+  .topbar-sep { flex: 1; }
+  .trainer-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+  .trainer-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-dim), var(--purple));
+    border: 1px solid var(--border-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 10px; color: #fff;
+  }
+ 
+  /* LAYOUT */
+  .app { display: flex; height: calc(100vh - 56px); position: relative; z-index: 10; }
+  .sidebar {
+    width: 220px; background: var(--bg-deep); border-right: 1px solid var(--border-dim);
+    padding: 20px 0; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px;
+  }
+  .sidebar-label { font-family: var(--font-display); font-size: 9px; letter-spacing: 2px; color: var(--text-muted); padding: 8px 20px 4px; text-transform: uppercase; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px; cursor: pointer;
+    font-weight: 600; font-size: 14px; color: var(--text-secondary); transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar-item:hover { color: var(--text-primary); background: var(--bg-hover); }
+  .sidebar-item.active { color: var(--purple); background: rgba(155,111,255,0.08); border-left-color: var(--purple); }
+  .sidebar-icon { font-size: 18px; opacity: 0.8; }
+  .main { flex: 1; overflow-y: auto; padding: 24px; }
+ 
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
+  .page-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; }
+  .page-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+ 
+  /* STAT CARDS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: var(--radius-lg); padding: 14px 16px; }
+  .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text-primary); }
+  .stat-val.gold { color: var(--gold); }
+  .stat-val.purple { color: var(--purple); }
+  .stat-val.cyan { color: var(--cyan); }
+ 
+  /* TOOLBAR */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 180px; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+  .search-input {
+    width: 100%; background: var(--bg-panel); border: 1px solid var(--border-dim);
+    border-radius: var(--radius); color: var(--text-primary); font-family: var(--font-body);
+    font-size: 14px; padding: 8px 12px 8px 34px; outline: none; transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--border-accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+  .filter-btn {
+    background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: var(--radius);
+    color: var(--text-secondary); font-family: var(--font-body); font-size: 13px; font-weight: 600;
+    padding: 8px 14px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--border-mid); color: var(--text-primary); }
+  .filter-btn.active { background: rgba(155,111,255,0.12); border-color: var(--purple-dim); color: var(--purple); }
+  .add-btn {
+    background: rgba(155,111,255,0.15); border: 1px solid var(--purple-dim); border-radius: var(--radius);
+    color: var(--purple); font-family: var(--font-body); font-size: 13px; font-weight: 700;
+    padding: 8px 16px; cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.5px;
+  }
+  .add-btn:hover { background: rgba(155,111,255,0.25); }
+ 
+  /* INVENTORY GRID */
+  .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .item-card {
+    background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: var(--radius-lg);
+    padding: 16px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  }
+  .item-card:hover { border-color: var(--border-mid); transform: translateY(-2px); background: var(--bg-hover); }
+  .item-card.selected { border-color: var(--purple); background: rgba(155,111,255,0.07); }
+  .rarity-bar { position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+ 
+  /* HD ITEM IMAGE */
+  .item-img-wrap {
+    width: 64px; height: 64px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .item-img-wrap img {
+    width: 64px; height: 64px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
+    transition: transform 0.2s, filter 0.2s;
+  }
+  .item-card:hover .item-img-wrap img {
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 4px 14px rgba(155,111,255,0.35));
+  }
+  /* Rarity glow behind image */
+  .item-img-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    opacity: 0.18;
+    filter: blur(10px);
+    z-index: 0;
+  }
+  .item-img-wrap img { position: relative; z-index: 1; }
+ 
+  .item-name { font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; letter-spacing: 0.5px; }
+  .item-category { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .item-footer { display: flex; align-items: center; justify-content: space-between; }
+  .item-qty { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--gold); }
+  .qty-label { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; }
+  .rarity-badge { font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 2px 7px; border-radius: 3px; }
+  .rarity-common { background: rgba(136,144,187,0.15); color: var(--rarity-common); }
+  .rarity-uncommon { background: rgba(77,219,138,0.12); color: var(--rarity-uncommon); }
+  .rarity-rare { background: rgba(77,217,232,0.12); color: var(--rarity-rare); }
+  .rarity-epic { background: rgba(155,111,255,0.15); color: var(--rarity-epic); }
+  .rarity-legendary { background: rgba(232,201,106,0.12); color: var(--rarity-legendary); }
+ 
+  /* DETAIL PANEL */
+  .detail-panel {
+    width: 300px; background: var(--bg-deep); border-left: 1px solid var(--border-dim);
+    flex-shrink: 0; display: flex; flex-direction: column; transition: width 0.2s; overflow: hidden;
+  }
+  .detail-panel.hidden { width: 0; border: none; }
+  .detail-inner { padding: 24px; min-width: 300px; }
+  .detail-close {
+    position: absolute; top: 10px; right: 10px; background: none; border: none;
+    color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px;
+    border-radius: 4px; transition: color 0.15s;
+  }
+  .detail-close:hover { color: var(--text-primary); }
+  .detail-header { position: relative; margin-bottom: 20px; }
+ 
+  /* HD detail image */
+  .detail-img-wrap {
+    width: 96px; height: 96px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .detail-img-wrap img {
+    width: 96px; height: 96px; object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 18px rgba(0,0,0,0.8));
+    animation: floatItem 3s ease-in-out infinite;
+  }
+  @keyframes floatItem {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-6px); }
+  }
+ 
+  .detail-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .detail-cat { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 12px; }
+  .detail-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 16px; }
+  .detail-stats { margin-bottom: 20px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-dim); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row-label { color: var(--text-muted); font-weight: 600; }
+  .detail-row-val { color: var(--text-primary); font-weight: 600; }
+  .qty-control { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; background: var(--bg-panel); border: 1px solid var(--border-dim); border-radius: var(--radius); padding: 10px 12px; }
+  .qty-control-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
+  .qty-btn { width: 28px; height: 28px; background: var(--bg-hover); border: 1px solid var(--border-dim); border-radius: var(--radius); color: var(--text-primary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-family: var(--font-body); }
+  .qty-btn:hover { border-color: var(--purple); color: var(--purple); }
+  .qty-current { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--gold); min-width: 30px; text-align: center; }
+  .action-btns { display: flex; flex-direction: column; gap: 8px; }
+  .btn-use { background: rgba(77,219,138,0.12); border: 1px solid rgba(77,219,138,0.3); border-radius: var(--radius); color: var(--green); font-family: var(--font-body); font-size: 13px; font-weight: 700; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center; letter-spacing: 0.5px; }
+  .btn-use:hover { background: rgba(77,219,138,0.2); }
+  .btn-edit { background: rgba(77,217,232,0.08); border: 1px solid rgba(77,217,232,0.25); border-radius: var(--radius); color: var(--cyan); font-family: var(--font-body); font-size: 13px; font-weight: 700; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center; letter-spacing: 0.5px; }
+  .btn-edit:hover { background: rgba(77,217,232,0.15); }
+  .btn-delete { background: rgba(255,85,102,0.08); border: 1px solid rgba(255,85,102,0.25); border-radius: var(--radius); color: var(--red); font-family: var(--font-body); font-size: 13px; font-weight: 700; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center; letter-spacing: 0.5px; }
+  .btn-delete:hover { background: rgba(255,85,102,0.15); }
+ 
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--bg-panel); border: 1px solid var(--border-mid); border-radius: var(--radius-lg); padding: 28px; width: 420px; max-width: 95vw; transform: translateY(20px); transition: transform 0.2s; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; letter-spacing: 1px; }
+  .form-field { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+  .form-input, .form-select { width: 100%; background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: var(--radius); color: var(--text-primary); font-family: var(--font-body); font-size: 14px; padding: 9px 12px; outline: none; transition: border-color 0.15s; }
+  .form-input:focus, .form-select:focus { border-color: var(--border-accent); }
+  .form-select { cursor: pointer; }
+  .form-select option { background: var(--bg-card); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .modal-cancel { background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: var(--radius); color: var(--text-secondary); font-family: var(--font-body); font-size: 13px; font-weight: 600; padding: 9px 18px; cursor: pointer; transition: all 0.15s; }
+  .modal-cancel:hover { color: var(--text-primary); border-color: var(--border-mid); }
+  .modal-submit { background: rgba(155,111,255,0.18); border: 1px solid var(--purple-dim); border-radius: var(--radius); color: var(--purple); font-family: var(--font-body); font-size: 13px; font-weight: 700; padding: 9px 18px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .modal-submit:hover { background: rgba(155,111,255,0.28); }
+ 
+  /* TOAST */
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 300; }
+  .toast { background: var(--bg-panel); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--text-primary); animation: toastIn 0.2s ease, toastOut 0.3s ease 2.5s forwards; pointer-events: none; }
+  .toast.success { border-color: rgba(77,219,138,0.4); color: var(--green); }
+  .toast.error { border-color: rgba(255,85,102,0.4); color: var(--red); }
+  @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+  @keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+ 
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1 / -1; }
+  .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state-text { font-size: 14px; font-weight: 600; }
+  .confirm-text { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 6px; }
+  .confirm-name { color: var(--red); font-weight: 700; }
+</style>
+</head>
+<body>
+ 
+<div class="fire-bg-overlay"></div>
+<div class="lava-horizon"></div>
+<canvas id="particle-canvas"></canvas>
+ 
+<header class="topbar">
+  <div class="topbar-logo">⚔ Pokémon nexus</div>
+  <nav style="display:flex; gap:4px;">
+    <button class="filter-btn" style="font-size:12px; padding:6px 12px;" onclick="alert('Navigate to Dashboard')">Dashboard</button>
+    <button class="filter-btn active" style="font-size:12px; padding:6px 12px;">Inventory</button>
+    <button class="filter-btn" style="font-size:12px; padding:6px 12px;" onclick="alert('Navigate to Pokédex')">Pokédex</button>
+    <button class="filter-btn" style="font-size:12px; padding:6px 12px;" onclick="alert('Navigate to Leaderboard')">Leaderboard</button>
+  </nav>
+  <div class="topbar-sep"></div>
+  <div class="trainer-badge">
+    <div class="trainer-avatar">ASH</div>
+    <span>Trainer Ash</span>
+  </div>
+</header>
+ 
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-label">Categories</div>
+    <div class="sidebar-item active" data-cat="all" onclick="setCategory('all', this)"><span class="sidebar-icon">🎒</span> All Items</div>
+    <div class="sidebar-item" data-cat="Healing" onclick="setCategory('Healing', this)"><span class="sidebar-icon">🧪</span> Healing</div>
+    <div class="sidebar-item" data-cat="Evolution" onclick="setCategory('Evolution', this)"><span class="sidebar-icon">✨</span> Evolution Stones</div>
+    <div class="sidebar-item" data-cat="Battle" onclick="setCategory('Battle', this)"><span class="sidebar-icon">⚔️</span> Battle Items</div>
+    <div class="sidebar-item" data-cat="Berry" onclick="setCategory('Berry', this)"><span class="sidebar-icon">🍓</span> Berries</div>
+    <div style="flex:1"></div>
+    <div class="sidebar-label">Storage</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📦</span> PC Storage</div>
+  </aside>
+ 
+  <main class="main" id="main-area">
+    <div class="page-header">
+      <div>
+        <div class="page-title">My Inventory</div>
+        <div class="page-sub">Manage your items, potions, and battle gear</div>
+      </div>
+    </div>
+ 
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-val gold" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-val purple" id="stat-cats">4</div></div>
+      <div class="stat-card"><div class="stat-label">Total Qty</div><div class="stat-val cyan" id="stat-qty">0</div></div>
+      <div class="stat-card"><div class="stat-label">Rare+</div><div class="stat-val" id="stat-rare">0</div></div>
+    </div>
+ 
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="text" id="search-input" placeholder="Search items..." oninput="renderGrid()">
+      </div>
+      <button class="filter-btn" id="sort-btn" onclick="toggleSort()">Sort: Name ↑</button>
+      <button class="add-btn" onclick="openAddModal()">+ Add Item</button>
+    </div>
+ 
+    <div class="inventory-grid" id="inventory-grid"></div>
+  </main>
+ 
+  <aside class="detail-panel hidden" id="detail-panel">
+    <div class="detail-inner" id="detail-inner"></div>
+  </aside>
+</div>
+ 
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add New Item</div>
+    <div class="form-field"><label class="form-label">Item Name</label><input class="form-input" type="text" id="field-name" placeholder="e.g. Potion"></div>
+    <div class="form-field">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="field-cat">
+        <option value="Healing">Healing</option>
+        <option value="Evolution">Evolution Stones</option>
+        <option value="Battle">Battle Items</option>
+        <option value="Berry">Berries</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">Quantity</label><input class="form-input" type="number" id="field-qty" min="1" value="1"></div>
+    <div class="form-field">
+      <label class="form-label">Rarity</label>
+      <select class="form-select" id="field-rarity">
+        <option value="common">Common</option>
+        <option value="uncommon">Uncommon</option>
+        <option value="rare">Rare</option>
+        <option value="epic">Epic</option>
+        <option value="legendary">Legendary</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">Description</label><input class="form-input" type="text" id="field-desc" placeholder="What does this item do?"></div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-submit" onclick="submitItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--red)">Delete Item</div>
+    <p class="confirm-text">Are you sure you want to remove <span class="confirm-name" id="confirm-name"></span> from your inventory? This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-delete" style="padding:9px 18px;font-size:13px;font-family:var(--font-body);cursor:pointer;letter-spacing:0.5px;" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+ 
+<div class="toast-wrap" id="toast-wrap"></div>
+ 
+<script>
+/* ═══════════════════════════════════════════════
+   ITEM IMAGE MAP — official Pokémon item sprites
+   sourced from Bulbapedia / Serebii CDN (no auth required)
+═══════════════════════════════════════════════ */
+const ITEM_IMAGES = {
+  // Healing
+  'potion':        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png',
+  'super-potion':  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/super-potion.png',
+  'hyper-potion':  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/hyper-potion.png',
+  'max-potion':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/max-potion.png',
+  'revive':        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/revive.png',
+  'max-revive':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/max-revive.png',
+  'antidote':      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/antidote.png',
+  'full-heal':     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/full-heal.png',
+  'full-restore':  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/full-restore.png',
+  // Evolution
+  'thunder-stone': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png',
+  'fire-stone':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fire-stone.png',
+  'water-stone':   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/water-stone.png',
+  'leaf-stone':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leaf-stone.png',
+  'moon-stone':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/moon-stone.png',
+  'sun-stone':     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/sun-stone.png',
+  'shiny-stone':   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/shiny-stone.png',
+  'dawn-stone':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dawn-stone.png',
+  // Battle
+  'master-ball':   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png',
+  'ultra-ball':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png',
+  'great-ball':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png',
+  'poke-ball':     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
+  'x-attack':      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-attack.png',
+  'x-defend':      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-defend.png',
+  'x-speed':       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-speed.png',
+  'x-special':     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-spatk.png',
+  'dire-hit':      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dire-hit.png',
+  'guard-spec':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/guard-spec.png',
+  // Berries
+  'oran-berry':    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/oran-berry.png',
+  'sitrus-berry':  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/sitrus-berry.png',
+  'lum-berry':     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lum-berry.png',
+  'rawst-berry':   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rawst-berry.png',
+  'chesto-berry':  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/chesto-berry.png',
+  'pecha-berry':   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/pecha-berry.png',
+  'aspear-berry':  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/aspear-berry.png',
+  'leppa-berry':   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leppa-berry.png',
+};
+ 
+// Fallback per category
+const CAT_FALLBACK = {
+  Healing: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png',
+  Evolution: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fire-stone.png',
+  Battle: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
+  Berry: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/oran-berry.png',
+};
+ 
+function getItemImg(icon, cat) {
+  return ITEM_IMAGES[icon] || CAT_FALLBACK[cat] || ITEM_IMAGES['potion'];
+}
+ 
+/* ═══════════════════════════════════════════════
+   FIRE KINGDOM PARTICLE SYSTEM
+═══════════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  const FIRE_COLORS = [
+    {r:255,g:200,b:60},{r:255,g:140,b:20},{r:255,g:80,b:10},
+    {r:255,g:220,b:100},{r:255,g:100,b:30},{r:255,g:240,b:180},{r:220,g:60,b:0},
+  ];
+  const TYPES = ['ember','ember','ember','sparkle','sparkle','dust','large-ember'];
+  let W, H, particles = [];
+  const COUNT = 280;
+ 
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+ 
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function randInt(a,b){return Math.floor(rand(a,b));}
+ 
+  function createParticle(forceBottom) {
+    const type = TYPES[randInt(0,TYPES.length)];
+    const col = FIRE_COLORS[randInt(0,FIRE_COLORS.length)];
+    const x = rand(0,W), y = forceBottom ? rand(H*0.6,H+20) : rand(0,H);
+    let size,speedY,speedX,lifeMax,glowRadius;
+    if(type==='large-ember'){size=rand(3.5,7);speedY=rand(-1.2,-0.4);speedX=rand(-0.6,0.6);lifeMax=rand(160,280);glowRadius=rand(10,22);}
+    else if(type==='ember'){size=rand(1.2,3.2);speedY=rand(-1.5,-0.5);speedX=rand(-0.5,0.5);lifeMax=rand(100,220);glowRadius=rand(5,14);}
+    else if(type==='sparkle'){size=rand(0.8,2.2);speedY=rand(-0.8,-0.2);speedX=rand(-0.3,0.3);lifeMax=rand(80,160);glowRadius=rand(6,16);}
+    else{size=rand(0.4,1.2);speedY=rand(-0.4,-0.1);speedX=rand(-0.2,0.2);lifeMax=rand(60,120);glowRadius=rand(2,7);}
+    return {type,col,x,y,size,speedY,speedX,wobbleAmp:rand(0.1,0.5),wobbleFreq:rand(0.01,0.04),wobbleOffset:rand(0,Math.PI*2),
+      life:forceBottom?rand(0,lifeMax*0.3):rand(0,lifeMax),lifeMax,glowRadius,
+      twinkleFreq:rand(0.05,0.15),twinkleOffset:rand(0,Math.PI*2)};
+  }
+  for(let i=0;i<COUNT;i++) particles.push(createParticle(false));
+ 
+  function getOpacity(p){
+    const pr=p.life/p.lifeMax;
+    let base = pr<0.1?pr/0.1:pr>0.75?1-(pr-0.75)/0.25:1;
+    if(p.type==='sparkle'){const t=0.5+0.5*Math.sin(p.life*p.twinkleFreq+p.twinkleOffset);base*=0.4+0.6*t;}
+    return Math.max(0,Math.min(1,base));
+  }
+ 
+  function drawParticle(p){
+    const op=getOpacity(p); if(op<=0) return;
+    const {r,g,b}=p.col;
+    ctx.save();
+    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.glowRadius);
+    grd.addColorStop(0,`rgba(${r},${g},${b},${op*0.45})`);
+    grd.addColorStop(0.4,`rgba(${r},${g},${b},${op*0.18})`);
+    grd.addColorStop(1,`rgba(${r},${g},${b},0)`);
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.glowRadius,0,Math.PI*2);
+    ctx.fillStyle=grd; ctx.fill();
+    if(p.type==='sparkle'){
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.life*0.05);
+      ctx.beginPath();
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2,r2=i%2===0?p.size*2:p.size*0.7;i===0?ctx.moveTo(Math.cos(a)*r2,Math.sin(a)*r2):ctx.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}
+      ctx.closePath(); ctx.fillStyle=`rgba(${r},${g},${b},${op*0.9})`; ctx.fill(); ctx.restore();
+    } else {
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${r},${g},${b},${op})`; ctx.fill();
+      if(p.size>1.5){ctx.beginPath();ctx.arc(p.x,p.y,p.size*0.4,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,230,${op*0.8})`;ctx.fill();}
+    }
+    ctx.restore();
+  }
+ 
+  let lastTime=0;
+  function animate(ts){
+    const dt=Math.min((ts-lastTime)/16.67,3); lastTime=ts;
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<particles.length;i++){
+      const p=particles[i]; p.life+=dt;
+      p.x+=(p.speedX+p.wobbleAmp*Math.sin(p.life*p.wobbleFreq+p.wobbleOffset))*dt;
+      p.y+=p.speedY*dt;
+      drawParticle(p);
+      if(p.life>=p.lifeMax||p.y<-20||p.x<-30||p.x>W+30) particles[i]=createParticle(true);
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+ 
+/* ═══════════════════════════════════════════════
+   INVENTORY SYSTEM
+═══════════════════════════════════════════════ */
+const ITEMS_DB = [
+  { id:1,  name:"Potion",        cat:"Healing",   qty:10, rarity:"common",    desc:"Restores 20 HP to a Pokémon.",                              icon:"potion" },
+  { id:2,  name:"Super Potion",  cat:"Healing",   qty:5,  rarity:"uncommon",  desc:"Restores 50 HP to a Pokémon.",                              icon:"super-potion" },
+  { id:3,  name:"Revive",        cat:"Healing",   qty:3,  rarity:"rare",      desc:"Revives a fainted Pokémon with half HP.",                   icon:"revive" },
+  { id:4,  name:"Antidote",      cat:"Healing",   qty:8,  rarity:"common",    desc:"Cures the Poisoned status condition.",                       icon:"antidote" },
+  { id:5,  name:"Thunder Stone", cat:"Evolution", qty:2,  rarity:"rare",      desc:"Evolves Pikachu and other Electric-types.",                  icon:"thunder-stone" },
+  { id:6,  name:"Fire Stone",    cat:"Evolution", qty:3,  rarity:"rare",      desc:"Evolves Fire-type Pokémon.",                                 icon:"fire-stone" },
+  { id:7,  name:"Water Stone",   cat:"Evolution", qty:1,  rarity:"rare",      desc:"Evolves Water-type Pokémon.",                                icon:"water-stone" },
+  { id:8,  name:"Master Ball",   cat:"Battle",    qty:1,  rarity:"legendary", desc:"Catches any wild Pokémon without fail.",                     icon:"master-ball" },
+  { id:9,  name:"X Attack",      cat:"Battle",    qty:4,  rarity:"uncommon",  desc:"Sharply raises the Attack stat in battle.",                  icon:"x-attack" },
+  { id:10, name:"Oran Berry",    cat:"Berry",     qty:15, rarity:"common",    desc:"A Berry to be used in battle. Restores 10 HP.",              icon:"oran-berry" },
+  { id:11, name:"Sitrus Berry",  cat:"Berry",     qty:6,  rarity:"uncommon",  desc:"If held by a Pokémon, it heals HP when in trouble.",         icon:"sitrus-berry" },
+];
+ 
+let items = JSON.parse(localStorage.getItem('pkm-inventory') || 'null') || ITEMS_DB;
+let currentCat = 'all', sortAsc = true, selectedId = null, editingId = null, deletingId = null;
+let nextId = Math.max(...items.map(i => i.id)) + 1;
+ 
+const RARITY_COLORS = { common:'#8890bb', uncommon:'#4ddb8a', rare:'#4dd9e8', epic:'#9b6fff', legendary:'#e8c96a' };
+ 
+function save() { localStorage.setItem('pkm-inventory', JSON.stringify(items)); }
+ 
+function filtered() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let res = items.filter(i => {
+    if (currentCat !== 'all' && i.cat !== currentCat) return false;
+    if (q && !i.name.toLowerCase().includes(q) && !i.cat.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  res.sort((a,b) => sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+  return res;
+}
+ 
+function updateStats() {
+  document.getElementById('stat-total').textContent = items.length;
+  document.getElementById('stat-qty').textContent = items.reduce((s,i) => s+i.qty, 0);
+  document.getElementById('stat-rare').textContent = items.filter(i => ['rare','epic','legendary'].includes(i.rarity)).length;
+}
+ 
+function renderGrid() {
+  const grid = document.getElementById('inventory-grid');
+  const list = filtered();
+  updateStats();
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎒</div><div class="empty-state-text">No items found</div></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(item => `
+    <div class="item-card ${item.id === selectedId ? 'selected' : ''}" onclick="selectItem(${item.id})">
+      <div class="rarity-bar" style="background:${RARITY_COLORS[item.rarity]}"></div>
+      <div class="item-img-wrap" style="--glow:${RARITY_COLORS[item.rarity]}">
+        <img src="${getItemImg(item.icon, item.cat)}"
+             alt="${item.name}"
+             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+      </div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-category">${item.cat}</div>
+      <div class="item-footer">
+        <div>
+          <div class="item-qty">×${item.qty}</div>
+          <div class="qty-label">Qty</div>
+        </div>
+        <div class="rarity-badge rarity-${item.rarity}">${item.rarity.toUpperCase()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+ 
+function selectItem(id) {
+  selectedId = id;
+  renderGrid();
+  const item = items.find(i => i.id === id);
+  const panel = document.getElementById('detail-panel');
+  panel.classList.remove('hidden');
+  document.getElementById('detail-inner').innerHTML = `
+    <div class="detail-header">
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+      <div class="detail-img-wrap">
+        <img src="${getItemImg(item.icon, item.cat)}"
+             alt="${item.name}"
+             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+      </div>
+      <div class="detail-name">${item.name}</div>
+      <div class="detail-cat">${item.cat}</div>
+      <div class="detail-desc">${item.desc}</div>
+      <div class="detail-stats">
+        <div class="detail-row">
+          <span class="detail-row-label">Rarity</span>
+          <span class="rarity-badge rarity-${item.rarity}">${item.rarity.toUpperCase()}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-row-label">Item ID</span>
+          <span class="detail-row-val">#${String(item.id).padStart(3,'0')}</span>
+        </div>
+      </div>
+    </div>
+    <div class="qty-control">
+      <span class="qty-control-label">Quantity</span>
+      <button class="qty-btn" onclick="adjustQty(${item.id},-1)">−</button>
+      <span class="qty-current" id="detail-qty-${item.id}">${item.qty}</span>
+      <button class="qty-btn" onclick="adjustQty(${item.id},+1)">+</button>
+    </div>
+    <div class="action-btns">
+      <button class="btn-use" onclick="useItem(${item.id})">⚡ Use Item</button>
+      <button class="btn-edit" onclick="openEditModal(${item.id})">✏️ Edit Item</button>
+      <button class="btn-delete" onclick="openDeleteConfirm(${item.id})">🗑 Delete Item</button>
+    </div>
+  `;
+}
+ 
+function closeDetail() { selectedId=null; document.getElementById('detail-panel').classList.add('hidden'); renderGrid(); }
+ 
+function adjustQty(id, delta) {
+  const item = items.find(i=>i.id===id); if(!item) return;
+  item.qty = Math.max(0, item.qty+delta); save();
+  document.getElementById(`detail-qty-${id}`).textContent = item.qty;
+  renderGrid(); toast(`${item.name}: ×${item.qty}`, 'success');
+}
+ 
+function useItem(id) {
+  const item = items.find(i=>i.id===id); if(!item) return;
+  if(item.qty<=0){toast('No more '+item.name+' left!','error');return;}
+  item.qty--; save();
+  document.getElementById(`detail-qty-${id}`).textContent = item.qty;
+  renderGrid(); toast(`Used ${item.name}! (×${item.qty} remaining)`, 'success');
+}
+ 
+function setCategory(cat, el) {
+  currentCat=cat;
+  document.querySelectorAll('.sidebar-item').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active'); renderGrid();
+}
+ 
+function toggleSort() {
+  sortAsc=!sortAsc;
+  document.getElementById('sort-btn').textContent=`Sort: Name ${sortAsc?'↑':'↓'}`;
+  renderGrid();
+}
+ 
+function openAddModal() {
+  editingId=null;
+  document.getElementById('modal-title').textContent='Add New Item';
+  document.getElementById('field-name').value='';
+  document.getElementById('field-cat').value='Healing';
+  document.getElementById('field-qty').value=1;
+  document.getElementById('field-rarity').value='common';
+  document.getElementById('field-desc').value='';
+  document.getElementById('item-modal').classList.add('open');
+}
+ 
+function openEditModal(id) {
+  const item=items.find(i=>i.id===id); if(!item) return;
+  editingId=id;
+  document.getElementById('modal-title').textContent='Edit Item';
+  document.getElementById('field-name').value=item.name;
+  document.getElementById('field-cat').value=item.cat;
+  document.getElementById('field-qty').value=item.qty;
+  document.getElementById('field-rarity').value=item.rarity;
+  document.getElementById('field-desc').value=item.desc;
+  document.getElementById('item-modal').classList.add('open');
+}
+ 
+function closeModal() { document.getElementById('item-modal').classList.remove('open'); }
+ 
+function submitItem() {
+  const name=document.getElementById('field-name').value.trim();
+  const cat=document.getElementById('field-cat').value;
+  const qty=parseInt(document.getElementById('field-qty').value)||1;
+  const rarity=document.getElementById('field-rarity').value;
+  const desc=document.getElementById('field-desc').value.trim()||'A useful item for your journey.';
+  if(!name){toast('Item name is required','error');return;}
+  const catIconMap={Healing:'potion',Evolution:'thunder-stone',Battle:'x-attack',Berry:'oran-berry'};
+  if(editingId!==null){
+    const item=items.find(i=>i.id===editingId);
+    item.name=name;item.cat=cat;item.qty=qty;item.rarity=rarity;item.desc=desc;
+    save();closeModal();renderGrid();
+    if(selectedId===editingId) selectItem(editingId);
+    toast(`${name} updated`,'success');
+  } else {
+    items.push({id:nextId++,name,cat,qty,rarity,desc,icon:catIconMap[cat]||'potion'});
+    save();closeModal();renderGrid();toast(`${name} added to inventory`,'success');
+  }
+}
+ 
+function openDeleteConfirm(id) {
+  const item=items.find(i=>i.id===id); if(!item) return;
+  deletingId=id;
+  document.getElementById('confirm-name').textContent=item.name;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+ 
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); deletingId=null; }
+ 
+function confirmDelete() {
+  if(deletingId===null) return;
+  const item=items.find(i=>i.id===deletingId);
+  items=items.filter(i=>i.id!==deletingId); save(); closeConfirm();
+  if(selectedId===deletingId) closeDetail();
+  renderGrid(); toast(`${item.name} removed`,'error'); deletingId=null;
+}
+ 
+function toast(msg,type=''){
+  const wrap=document.getElementById('toast-wrap');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;el.textContent=msg;
+  wrap.appendChild(el);setTimeout(()=>el.remove(),3000);
+}
+ 
+document.getElementById('item-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.getElementById('confirm-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeConfirm();});
+ 
+renderGrid();
+</script>
+</body>
+</html>
