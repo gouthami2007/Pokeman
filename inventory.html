@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Nexus — Inventory Hub</title>
+<style>
+/* ============================================================
+   POKÉMON FIELD LOG — DESIGN SYSTEM (SYNCED WITH HOME THEME)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Poppins:wght@400;500;600;700;900&display=swap');
+
+:root {
+  --radius-card: 20px;
+  --radius-sm: 12px;
+  --yellow: #ffcb05;
+  --red: #ff3d00;
+  --blue: #0c70ff;
+  --green: #29ffb6;
+  --shadow-glow: 0 0 25px rgba(255, 107, 0, 0.35);
+  
+  /* Rarity Colors */
+  --rarity-common: #9ca3af;
+  --rarity-uncommon: #10b981;
+  --rarity-rare: #3b82f6;
+  --rarity-epic: #a855f7;
+  --rarity-legendary: #ffcb05;
+}
+
+* { 
+  box-sizing: border-box; 
+  margin: 0;
+  padding: 0;
+}
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: url("background.jpg") center/cover no-repeat fixed;
+  color: #fff;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(5, 8, 18, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Ambient Ray Layer */
+.cinematic-rays {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(255, 100, 0, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+  animation: pulseRays 8s ease-in-out infinite alternate;
+}
+@keyframes pulseRays {
+  0% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.95); }
+  100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1180px, 92vw);
+  height: 72px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  border-radius: 24px;
+  background: rgba(5, 8, 18, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(255, 88, 0, 0.35);
+}
+
+.nav-brand {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 30px;
+  color: #ffcb05;
+  -webkit-text-stroke: 1.5px #0757a8;
+  text-shadow: 0 0 16px #ff6b00;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-links a {
+  position: relative;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 10px 13px;
+  border-radius: 999px;
+  transition: all 0.2s;
+  border: 1.5px solid transparent;
+}
+
+.nav-links a:hover {
+  background: rgba(255, 100, 0, 0.22);
+  text-shadow: 0 0 12px #ff7a00;
+}
+
+.nav-links a.active {
+  background: rgba(255, 203, 5, 0.25);
+  color: #ffcb05;
+  text-shadow: 0 0 12px #ff7a00;
+  border: 1.5px solid #ffcb05;
+  box-shadow: 0 0 15px rgba(255, 203, 5, 0.4), inset 0 0 10px rgba(255, 203, 5, 0.2);
+  animation: goldenGlow 2s infinite alternate;
+}
+
+@keyframes goldenGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 203, 5, 0.3), inset 0 0 5px rgba(255, 203, 5, 0.1);
+    border-color: rgba(255, 203, 5, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(255, 203, 5, 0.6), inset 0 0 15px rgba(255, 203, 5, 0.3);
+    border-color: rgba(255, 203, 5, 1);
+  }
+}
+
+.fire-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 14px;
+  background: linear-gradient(90deg, transparent, #ff3000, #ffd000, #ff3000, transparent);
+  filter: blur(8px);
+  opacity: .8;
+  animation: fireMove 1.8s infinite alternate;
+}
+
+@keyframes fireMove {
+  from { transform: translateX(-25px); opacity: .45; }
+  to { transform: translateX(25px); opacity: 1; }
+}
+
+/* MAIN CONTENT */
+main.page {
+  max-width: 1200px;
+  width: 92vw;
+  margin: 140px auto 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: pageLoad 0.6s ease-out;
+}
+
+@keyframes pageLoad {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* HERO SECTION */
+.hero-section {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 3rem;
+  color: #ffcb05;
+  -webkit-text-stroke: 2px #0757a8;
+  text-shadow: 0 0 20px rgba(255, 107, 0, 0.6);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.hero-subtitle {
+  font-size: 1.05rem;
+  color: #dff8ff;
+  opacity: 0.95;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* STATS CARDS */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: rgba(5, 8, 18, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, rgba(255, 203, 5, 0.3), transparent 60%) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 203, 5, 0.4);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 12px 40px rgba(255, 203, 5, 0.15);
+}
+.stat-card:hover::after {
+  opacity: 1;
+}
+
+.stat-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 15px rgba(12, 112, 255, 0.15);
+}
+
+.stat-card:hover .stat-icon-wrapper {
+  animation: bounceIcon 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes bounceIcon {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: #ffd86b;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Capacity bar nested in card */
+.capacity-progress-container {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.capacity-progress-outer {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.capacity-progress-inner {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--green), #10b981);
+  border-radius: 99px;
+  transition: width 0.5s ease-in-out, background 0.3s;
+}
+
+.capacity-progress-inner.warning {
+  background: linear-gradient(90deg, #f59e0b, var(--red));
+  animation: pulseWarning 1.5s infinite alternate;
+}
+
+@keyframes pulseWarning {
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.3); }
+}
+
+.capacity-warning-text {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ff3d00;
+  margin-top: 4px;
+  display: none;
+  animation: pulseText 1.5s infinite alternate;
+}
+@keyframes pulseText {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* CATEGORY NAVIGATION */
+.category-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 4px 12px 4px;
+  scroll-behavior: smooth;
+}
+
+.category-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.category-strip::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 99px;
+}
+.category-strip::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 99px;
+}
+.category-strip::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 203, 5, 0.4);
+}
+
+.cat-btn {
+  flex-shrink: 0;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  background: rgba(5, 8, 18, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.cat-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  transition: transform 0.25s;
+}
+
+.cat-btn:hover {
+  background: rgba(255, 100, 0, 0.15);
+  border-color: rgba(255, 203, 5, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.2);
+}
+
+.cat-btn:hover svg {
+  transform: rotate(30deg) scale(1.1);
+}
+
+.cat-btn.active {
+  background: linear-gradient(90deg, #ff3d00, #ffcb05);
+  color: #130700;
+  border-color: #ffcb05;
+  box-shadow: 0 0 15px rgba(255, 203, 5, 0.45);
+}
+
+/* TOOLBAR CONTROLS */
+.toolbar-container {
+  background: rgba(5, 8, 18, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.1), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 768px) {
+  .toolbar-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .toolbar-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 10px 16px 10px 42px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--yellow);
+  box-shadow: 0 0 15px rgba(255, 203, 5, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  fill: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  transition: fill 0.3s;
+}
+
+.search-input:focus + .search-icon {
+  fill: var(--yellow);
+}
+
+.dropdown-control {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 10px 20px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='white'><polygon points='0,0 10,0 5,7'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  padding-right: 36px;
+}
+
+.dropdown-control:focus {
+  outline: none;
+  border-color: var(--yellow);
+  box-shadow: 0 0 12px rgba(255, 203, 5, 0.25);
+}
+
+.dropdown-control option {
+  background: #0f1322;
+  color: #fff;
+}
+
+.btn-add {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(90deg, #ff3d00, #ffcb05);
+  color: #130700;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 61, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 61, 0, 0.55);
+}
+
+.btn-add svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* CARDS GRID */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.item-card {
+  background: rgba(5, 8, 18, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.25s, box-shadow 0.25s;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.item-card.common { border-color: rgba(156, 163, 175, 0.3); }
+.item-card.uncommon { border-color: rgba(16, 185, 129, 0.3); }
+.item-card.rare { border-color: rgba(59, 130, 246, 0.3); }
+.item-card.epic { border-color: rgba(168, 85, 247, 0.3); }
+.item-card.legendary { border-color: rgba(255, 203, 5, 0.35); }
+
+/* Card glows */
+.item-card.common:hover { box-shadow: 0 0 20px rgba(156, 163, 175, 0.25); border-color: var(--rarity-common); }
+.item-card.uncommon:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); border-color: var(--rarity-uncommon); }
+.item-card.rare:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.35); border-color: var(--rarity-rare); }
+.item-card.epic:hover { box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); border-color: var(--rarity-epic); }
+.item-card.legendary:hover { box-shadow: 0 0 30px rgba(255, 203, 5, 0.55); border-color: var(--rarity-legendary); }
+
+.item-card-inner {
+  transform: translateZ(20px);
+}
+
+.item-icon-container {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.item-card-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+  animation: floatItem 3.5s ease-in-out infinite alternate;
+  transition: transform 0.3s;
+}
+
+.item-card:hover .item-card-img {
+  transform: scale(1.1);
+}
+
+@keyframes floatItem {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+.item-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.item-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.rarity-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+.rarity-tag.common { background: rgba(156, 163, 175, 0.25); color: #d1d5db; }
+.rarity-tag.uncommon { background: rgba(16, 185, 129, 0.25); color: #a7f3d0; }
+.rarity-tag.rare { background: rgba(59, 130, 246, 0.25); color: #bfdbfe; }
+.rarity-tag.epic { background: rgba(168, 85, 247, 0.25); color: #e9d5ff; }
+.rarity-tag.legendary { background: rgba(255, 203, 5, 0.25); color: #fef3c7; }
+
+.item-qty {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffcb05;
+  text-shadow: 0 0 5px rgba(255, 203, 5, 0.3);
+}
+
+/* Add / Delete animations */
+.card-added-animation {
+  animation: cardFlyIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes cardFlyIn {
+  from { transform: scale(0.4) translateY(120px) rotate(15deg); opacity: 0; filter: brightness(3); }
+  to { transform: scale(1) translateY(0) rotate(0); opacity: 1; filter: brightness(1); }
+}
+
+.card-deleted-animation {
+  animation: cardShrinkOut 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes cardShrinkOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.2); opacity: 0; filter: blur(5px); }
+}
+
+/* CUSTOM TOOLTIP */
+.custom-tooltip {
+  position: absolute;
+  z-index: 500;
+  width: 200px;
+  background: rgba(5, 8, 18, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  color: var(--yellow);
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+.tooltip-compat {
+  margin-top: 6px;
+  color: #29ffb6;
+  font-weight: 600;
+}
+
+/* CENTERED MODAL OVERLAY */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 18, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box {
+  background: rgba(5, 8, 18, 0.94);
+  border: 1.5px solid rgba(255, 203, 5, 0.25);
+  border-radius: 24px;
+  padding: 30px;
+  width: min(650px, 94vw);
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 24px;
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255,255,255,0.15);
+}
+
+@media (max-width: 600px) {
+  .modal-box {
+    grid-template-columns: 1fr;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    gap: 16px;
+  }
+}
+
+.modal-backdrop.show .modal-box {
+  transform: scale(1);
+}
+
+/* Modal Left Section: Spotlight & Platform */
+.modal-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: radial-gradient(circle at 50% 50%, rgba(12, 112, 255, 0.15) 0%, transparent 70%);
+  border-radius: 16px;
+  padding: 20px;
+  min-height: 200px;
+}
+
+.modal-platform {
+  width: 140px;
+  height: 25px;
+  background: radial-gradient(ellipse at center, rgba(12, 112, 255, 0.6) 0%, transparent 75%);
+  border: 1.5px solid rgba(12, 112, 255, 0.4);
+  border-radius: 50%;
+  transform: rotateX(60deg);
+  position: absolute;
+  bottom: 25px;
+  box-shadow: 0 0 15px rgba(12, 112, 255, 0.4);
+  animation: pulsePlatform 2.5s ease-in-out infinite alternate;
+}
+@keyframes pulsePlatform {
+  0% { transform: rotateX(60deg) scale(0.96); opacity: 0.6; }
+  100% { transform: rotateX(60deg) scale(1.04); opacity: 1; }
+}
+
+.modal-large-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  z-index: 2;
+  transform-origin: center bottom;
+  animation: floatItem 3.2s ease-in-out infinite alternate, rotatePlatform 18s linear infinite;
+}
+@keyframes rotatePlatform {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+/* Modal Right Section */
+.modal-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.modal-header-tag {
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
+.modal-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.8rem;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.2px #0757a8;
+  margin-bottom: 2px;
+}
+
+.modal-cat {
+  font-size: 0.78rem;
+  color: #29ffb6;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.modal-desc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #dff8ff;
+  opacity: 0.9;
+  margin-bottom: 16px;
+  min-height: 60px;
+}
+
+.modal-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 0;
+  margin-bottom: 16px;
+}
+.price-row {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+}
+.price-row b {
+  font-size: 0.95rem;
+  color: var(--yellow);
+  display: block;
+}
+
+/* Modal Quantity adjusters */
+.qty-adjuster-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.qty-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.qty-btn:hover {
+  background: rgba(255, 203, 5, 0.2);
+  border-color: var(--yellow);
+  transform: scale(1.08);
+}
+.qty-btn:active {
+  transform: scale(0.92);
+}
+.qty-display {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--yellow);
+  width: 40px;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+.qty-display.pop {
+  transform: scale(1.3);
+}
+
+/* Modal Actions Buttons */
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-modal {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-use {
+  background: linear-gradient(90deg, #10b981, #29ffb6);
+  color: #05120e;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+.btn-use:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5); }
+
+.btn-edit {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+}
+.btn-edit:hover { background: rgba(255,255,255,0.12); border-color: var(--yellow); }
+
+.btn-delete {
+  background: linear-gradient(90deg, #b91c1c, #f87171);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.35);
+}
+.btn-delete:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(185, 28, 28, 0.55); }
+
+.btn-close {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+}
+.btn-close:hover { border-color: #fff; color: #fff; }
+
+/* ADD/EDIT FORM MODAL SUB-OVERLAY */
+.form-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 18, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1100;
+  backdrop-filter: blur(10px);
+}
+.form-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.form-box {
+  background: rgba(5, 8, 18, 0.94);
+  border: 1.5px solid rgba(255, 203, 5, 0.35);
+  border-radius: 20px;
+  padding: 24px;
+  width: min(480px, 94vw);
+  transform: scale(0.92);
+  transition: transform 0.25s ease;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.6);
+}
+.form-backdrop.show .form-box {
+  transform: scale(1);
+}
+
+.form-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.5rem;
+  color: var(--yellow);
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,203,5,0.25);
+  padding-bottom: 6px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-field.full {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffd86b;
+  text-transform: uppercase;
+}
+
+.form-input {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.82rem;
+  transition: border-color 0.25s;
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--yellow);
+}
+
+.form-input option {
+  background: #0f1322;
+  color: #fff;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* toast notification styles */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(5, 8, 18, 0.9);
+  border: 1px solid var(--green);
+  box-shadow: 0 0 15px rgba(41, 255, 182, 0.25), 0 8px 32px rgba(0,0,0,0.6);
+  padding: 12px 20px;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  z-index: 2000;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Accessibility Focus Indicator */
+.item-card:focus, .btn:focus, .qty-btn:focus, .form-input:focus, .search-input:focus, .dropdown-control:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.6) !important;
+}
+
+/* Sparks layer */
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #ffd36b;
+  border-radius: 50%;
+  box-shadow: 0 0 14px #ff5a00;
+  z-index: 4;
+  animation: floatUp linear infinite;
+  pointer-events: none;
+}
+
+@keyframes floatUp {
+  from { transform: translateY(105vh); opacity: .1 }
+  35% { opacity: .8 }
+  to { transform: translateY(-20vh); opacity: .1 }
+}
+
+/* ============================================================
+   RESPONSIVE NAVBAR & BRAND PRESETS (PREVENT WRAPPING)
+   ============================================================ */
+.nav-brand {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+#trainerWelcome {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+.nav-links {
+  flex-shrink: 1 !important;
+}
+@media (max-width: 1120px) {
+  .navbar {
+    padding: 0 16px !important;
+  }
+  .nav-brand {
+    font-size: 24px !important;
+  }
+  .nav-links a {
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+  }
+}
+@media (max-width: 950px) {
+  .navbar {
+    height: auto !important;
+    flex-direction: column !important;
+    padding: 12px !important;
+    gap: 8px !important;
+    border-radius: 18px !important;
+    top: 10px !important;
+    position: fixed !important;
+  }
+  .nav-links {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+  .nav-links a {
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+  }
+  main.page {
+    margin-top: 170px !important; /* Push down page content to prevent overlap under stacked navbar */
+  }
+}
+
+</style>
+</head>
+<body>
+  <!-- Ambient Spark/Ember layers -->
+  <div id="sparks-container"></div>
+  
+  <div class="cinematic-rays"></div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <svg class="pokeball-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:1.2em;height:1.2em;vertical-align:middle;margin-right:8px;display:inline-block;filter:drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));">
+        <circle cx="50" cy="50" r="48" fill="#fff" stroke="#000" stroke-width="8" />
+        <path d="M 50,50 M 2,50 A 48,48 0 0,1 98,50 Z" fill="#ff1c1c" stroke="#000" stroke-width="8" />
+        <line x1="2" y1="50" x2="98" y2="50" stroke="#000" stroke-width="8" />
+        <circle cx="50" cy="50" r="18" fill="#fff" stroke="#000" stroke-width="8" />
+        <circle cx="50" cy="50" r="8" fill="#fff" stroke="#000" stroke-width="2" />
+      </svg>
+      Pokémon Nexus
+      <span id="trainerWelcome" style="font-size:13px;color:#ffd86b;margin-left:10px"></span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="pokedex.html">Pokédex</a>
+      <a href="battle.html">Battle</a>
+      <a href="kingdom-map.html">Kingdom Map</a>
+      <a href="inventory.html" class="active">Inventory</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="profile.html">Profile</a>
+      <a href="admin/admin.html" id="adminNavLink" style="display:none">Admin</a>
+    </div>
+    <div class="fire-strip"></div>
+  </nav>
+
+  <main class="page">
+    <!-- HERO SECTION -->
+    <header class="hero-section">
+      <h1 class="hero-title">Inventory</h1>
+      <p class="hero-subtitle">Manage your Pokémon items, battle gear, healing supplies and evolution stones.</p>
+    </header>
+
+    <!-- STATS cards -->
+    <section class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="#ffcb05"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-3.31 0-6-2.69-6-6h12c0 3.31-2.69 6-6 6zM6.4 12c.35-2.28 2.07-4.12 4.35-4.63V9c0 .55.45 1 1 1s1-.45 1-1V7.37c2.28.51 4 2.35 4.35 4.63H6.4z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total Unique Items</span>
+          <div class="stat-value" id="stat-total-items">0</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="#29ffb6"><path d="M19.3 16.9c.4-.7.7-1.5.7-2.4 0-2.8-2.2-5-5-5s-5 2.2-5 5 2.2 5 5 5c.9 0 1.7-.3 2.4-.7l3.2 3.2 1.4-1.4-3.4-3.7zm-4.3 1.1c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.33 0 2.6-.27 3.77-.75l-1.56-1.56C13.33 19.88 12.68 20 12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8c0 .68-.12 1.33-.31 1.96l1.56 1.56C21.73 14.6 22 13.33 22 12c0-5.52-4.48-10-10-10z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total Quantity</span>
+          <div class="stat-value" id="stat-total-qty">0</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="#a855f7"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Rare & Legendary</span>
+          <div class="stat-value" id="stat-rare-items">0</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="#ff3d00"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-8 12H4V8h16v10h-8z"/></svg>
+        </div>
+        <div class="stat-info" style="display:flex; flex-direction:column; justify-content:center;">
+          <span class="stat-label">Bag Capacity</span>
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <div class="stat-value" id="stat-capacity-val">0/999</div>
+          </div>
+          <div class="capacity-progress-container">
+            <div class="capacity-progress-outer">
+              <div class="capacity-progress-inner" id="stat-capacity-bar"></div>
+            </div>
+            <div class="capacity-warning-text" id="stat-capacity-warn">🎒 Bag is almost full! Use or discard items.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES STRIP -->
+    <nav class="category-strip" id="category-strip" aria-label="Item Categories"></nav>
+
+    <!-- CONTROLS TOOLBAR -->
+    <section class="toolbar-container">
+      <div class="toolbar-left">
+        <div class="search-wrapper">
+          <input class="search-input" id="search-input" type="text" placeholder="Search items by name..." aria-label="Search items">
+          <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </div>
+        <select class="dropdown-control" id="sort-control" aria-label="Sort Order">
+          <option value="name-asc">Sort: A - Z</option>
+          <option value="name-desc">Sort: Z - A</option>
+          <option value="qty-desc">Sort: Quantity High</option>
+          <option value="qty-asc">Sort: Quantity Low</option>
+          <option value="rarity-desc">Sort: Rarity High</option>
+          <option value="rarity-asc">Sort: Rarity Low</option>
+        </select>
+        <select class="dropdown-control" id="filter-rarity-control" aria-label="Filter Rarity">
+          <option value="all">Rarity: All</option>
+          <option value="Common">Common</option>
+          <option value="Uncommon">Uncommon</option>
+          <option value="Rare">Rare</option>
+          <option value="Epic">Epic</option>
+          <option value="Legendary">Legendary</option>
+        </select>
+      </div>
+      <button class="btn-add" onclick="openAddForm()" aria-label="Add custom item">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        Add Item
+      </button>
+    </section>
+
+    <!-- CARDS GRID -->
+    <section class="inventory-grid" id="inventory-grid" role="list" aria-label="Pokémon Items"></section>
+  </main>
+
+  <!-- CUSTOM MOUSE TOOLTIP -->
+  <div class="custom-tooltip" id="custom-tooltip"></div>
+
+  <!-- CENTERED DETAILS MODAL OVERLAY -->
+  <div class="modal-backdrop" id="details-modal" onclick="closeDetailsModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <!-- Left platform -->
+      <div class="modal-left">
+        <div class="modal-platform"></div>
+        <img class="modal-large-img" id="modal-img" src="" alt="">
+      </div>
+      <!-- Right details -->
+      <div class="modal-right">
+        <div>
+          <span class="rarity-tag modal-header-tag" id="modal-rarity-badge"></span>
+          <h2 class="modal-title" id="modal-title">Item Name</h2>
+          <div class="modal-cat" id="modal-category">Category</div>
+          <p class="modal-desc" id="modal-desc">Detailed item description goes here.</p>
+          <div class="modal-prices">
+            <div class="price-row">Buy Price: <b id="modal-buy-price">$100</b></div>
+            <div class="price-row">Sell Price: <b id="modal-sell-price">$50</b></div>
+          </div>
+          <div class="qty-adjuster-row">
+            <button class="qty-btn" onclick="adjustQty(-1)" aria-label="Decrease quantity">−</button>
+            <span class="qty-display" id="modal-qty-val">1</span>
+            <button class="qty-btn" onclick="adjustQty(1)" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-modal btn-use" onclick="useActiveItem()">Use Item</button>
+          <button class="btn-modal btn-edit" onclick="openEditFormFromModal()">Edit Details</button>
+          <button class="btn-modal btn-delete" onclick="deleteActiveItem()">Discard</button>
+          <button class="btn-modal btn-close" onclick="closeDetailsModal(null)">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT SUB-MODAL FORM -->
+  <div class="form-backdrop" id="form-modal" onclick="closeFormModal(event)">
+    <div class="form-box" onclick="event.stopPropagation()">
+      <h3 class="form-title" id="form-title">Add Custom Item</h3>
+      <form id="item-form" onsubmit="saveFormItem(event)">
+        <div class="form-grid">
+          <div class="form-field full">
+            <label class="form-label" for="form-item-name">Item Name</label>
+            <input class="form-input" id="form-item-name" type="text" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="form-item-cat">Category</label>
+            <select class="form-input" id="form-item-cat">
+              <option value="Poké Balls">Poké Balls</option>
+              <option value="Potions">Potions</option>
+              <option value="Battle Items">Battle Items</option>
+              <option value="Evolution Stones">Evolution Stones</option>
+              <option value="Berries">Berries</option>
+              <option value="Held Items">Held Items</option>
+              <option value="Key Items">Key Items</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="form-item-rarity">Rarity</label>
+            <select class="form-input" id="form-item-rarity">
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Epic">Epic</option>
+              <option value="Legendary">Legendary</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="form-item-qty">Quantity</label>
+            <input class="form-input" id="form-item-qty" type="number" min="1" max="999" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="form-item-image">Image URL (Optional)</label>
+            <input class="form-input" id="form-item-image" type="url" placeholder="https://...">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="form-item-buy">Buy Price ($)</label>
+            <input class="form-input" id="form-item-buy" type="number" min="0" value="0">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="form-item-sell">Sell Price ($)</label>
+            <input class="form-input" id="form-item-sell" type="number" min="0" value="0">
+          </div>
+          <div class="form-field full">
+            <label class="form-label" for="form-item-desc">Description</label>
+            <input class="form-input" id="form-item-desc" type="text" required>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-modal btn-close" type="button" onclick="closeFormModal(null)">Cancel</button>
+          <button class="btn-modal btn-use" type="submit">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast">Item processed successfully!</div>
+
+  <script>
+    const MAX_CAPACITY = 999;
+
+    // Synthesis Audio Engine for satisfying retro gaming UX
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+        
+        if (type === 'hover') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(900, now);
+          gain.gain.setValueAtTime(0.008, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+          
+        } else if (type === 'click') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(783.99, now + 0.04); // G5
+          gain.gain.setValueAtTime(0.03, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+          
+        } else if (type === 'success') {
+          // Premium pickup sound (arpeggio fanfare)
+          const gainNode = audioCtx.createGain();
+          gainNode.connect(audioCtx.destination);
+          gainNode.gain.setValueAtTime(0.03, now);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          
+          const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+          freqs.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            osc.connect(gainNode);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + (idx * 0.06));
+            osc.start(now + (idx * 0.06));
+            osc.stop(now + 0.45);
+          });
+          
+        } else if (type === 'discard') {
+          // Slide down swoop sound
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(55, now + 0.2);
+          gain.gain.setValueAtTime(0.025, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+          
+        } else if (type === 'use') {
+          // Bubble healing sound
+          const gainNode = audioCtx.createGain();
+          gainNode.connect(audioCtx.destination);
+          gainNode.gain.setValueAtTime(0.03, now);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          
+          for (let i = 0; i < 8; i++) {
+            const osc = audioCtx.createOscillator();
+            osc.connect(gainNode);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300 + (Math.random() * 400), now + (i * 0.05));
+            osc.start(now + (i * 0.05));
+            osc.stop(now + 0.15 + (i * 0.05));
+          }
+        }
+      } catch (e) {
+        console.warn("Audio block/unsupported:", e);
+      }
+    }
+
+    // Default Items Database
+            const defaultInventory = [
+      { id: 1, name: "Master Ball", category: "Poké Balls", rarity: "Legendary", qty: 1, buy: 0, sell: 10000, desc: "The ultimate Ball that catches any wild Pokémon without fail.", img: "https://archives.bulbagarden.net/media/upload/9/95/Dream_Master_Ball_Sprite.png", compat: ["Mewtwo", "Rayquaza", "Zacian"] },
+      { id: 2, name: "Ultra Ball", category: "Poké Balls", rarity: "Rare", qty: 12, buy: 800, sell: 400, desc: "An ultra-performance Ball that provides a high catch rate.", img: "https://archives.bulbagarden.net/media/upload/a/a8/Dream_Ultra_Ball_Sprite.png", compat: ["Dragonite", "Tyranitar", "Garchomp"] },
+      { id: 3, name: "Great Ball", category: "Poké Balls", rarity: "Uncommon", qty: 25, buy: 600, sell: 300, desc: "A high-performance Ball that provides a higher catch rate than a standard Poké Ball.", img: "https://archives.bulbagarden.net/media/upload/b/bf/Dream_Great_Ball_Sprite.png", compat: ["Pikachu", "Snorlax", "Lucario"] },
+      { id: 4, name: "Poke Ball", category: "Poké Balls", rarity: "Common", qty: 50, buy: 200, sell: 100, desc: "A device for catching wild Pokémon. It is thrown like a ball.", img: "https://archives.bulbagarden.net/media/upload/7/79/Dream_Pok%C3%A9_Ball_Sprite.png", compat: ["Pikachu", "Eevee", "Charmander"] },
+      { id: 5, name: "Premier Ball", category: "Poké Balls", rarity: "Common", qty: 10, buy: 200, sell: 100, desc: "A somewhat rare Poké Ball that has been specially made to commemorate an event of some sort.", img: "https://archives.bulbagarden.net/media/upload/6/64/Dream_Premier_Ball_Sprite.png", compat: ["Pikachu", "Gardevoir"] },
+      { id: 6, name: "Beast Ball", category: "Poké Balls", rarity: "Legendary", qty: 2, buy: 0, sell: 5000, desc: "A special Poké Ball designed to catch Ultra Beasts.", img: "https://archives.bulbagarden.net/media/upload/6/65/Dream_Beast_Ball_Sprite.png", compat: ["Nihilego", "Buzzwole"] },
+      { id: 28, name: "Quick Ball", category: "Poké Balls", rarity: "Uncommon", qty: 10, buy: 1000, sell: 500, desc: "A Poké Ball that has a more successful catch rate if used at the start of a wild encounter.", img: "https://archives.bulbagarden.net/media/upload/9/90/Dream_Quick_Ball_Sprite.png", compat: ["Pikachu", "Eevee", "Abra"] },
+      { id: 29, name: "Dusk Ball", category: "Poké Balls", rarity: "Uncommon", qty: 12, buy: 1000, sell: 500, desc: "A Poké Ball that makes it easier to catch wild Pokémon at night or in dark caves.", img: "https://archives.bulbagarden.net/media/upload/5/59/Dream_Dusk_Ball_Sprite.png", compat: ["Gengar", "Zubat", "Clefairy"] },
+      { id: 30, name: "Luxury Ball", category: "Poké Balls", rarity: "Rare", qty: 5, buy: 3000, sell: 1500, desc: "A comfortable Poké Ball that makes a wild Pokémon quickly grow friendlier.", img: "https://archives.bulbagarden.net/media/upload/7/7e/Dream_Luxury_Ball_Sprite.png", compat: ["Eevee", "Chansey", "Pikachu"] },
+      
+      { id: 7, name: "Max Potion", category: "Potions", rarity: "Epic", qty: 4, buy: 2500, sell: 1250, desc: "Fully restores HP. Spray type liquid medicine.", img: "https://archives.bulbagarden.net/media/upload/a/a2/Dream_Max_Potion_Sprite.png", compat: ["Charizard", "Blastoise", "Venusaur"] },
+      { id: 8, name: "Hyper Potion", category: "Potions", rarity: "Rare", qty: 8, buy: 1500, sell: 750, desc: "Restores HP by 120 points. Spray type liquid medicine.", img: "https://archives.bulbagarden.net/media/upload/c/c8/Dream_Hyper_Potion_Sprite.png", compat: ["Lucario", "Greninja", "Gengar"] },
+      { id: 9, name: "Super Potion", category: "Potions", rarity: "Uncommon", qty: 15, buy: 700, sell: 350, desc: "Restores HP by 60 points. Spray type liquid medicine.", img: "https://archives.bulbagarden.net/media/upload/5/57/Dream_Super_Potion_Sprite.png", compat: ["Eevee", "Bulbasaur", "Squirtle"] },
+      { id: 10, name: "Potion", category: "Potions", rarity: "Common", qty: 30, buy: 300, sell: 150, desc: "Restores HP by 20 points. Spray type liquid medicine.", img: "https://archives.bulbagarden.net/media/upload/d/df/Dream_Potion_Sprite.png", compat: ["Pikachu", "Meowth", "Rattata"] },
+      { id: 11, name: "Full Restore", category: "Potions", rarity: "Epic", qty: 5, buy: 3000, sell: 1500, desc: "Fully restores HP and heals all status conditions.", img: "https://archives.bulbagarden.net/media/upload/0/0c/Dream_Full_Restore_Sprite.png", compat: ["Mewtwo", "Rayquaza"] },
+      { id: 31, name: "Antidote", category: "Potions", rarity: "Common", qty: 15, buy: 200, sell: 100, desc: "A spray-type medicine for curing a poisoned Pokémon.", img: "https://archives.bulbagarden.net/media/upload/4/42/Dream_Antidote_Sprite.png", compat: ["Pikachu", "Eevee", "Caterpie"] },
+      { id: 32, name: "Paralyze Heal", category: "Potions", rarity: "Common", qty: 15, buy: 200, sell: 100, desc: "A spray-type medicine for curing a paralyzed Pokémon.", img: "https://archives.bulbagarden.net/media/upload/2/2a/Dream_Paralyze_Heal_Sprite.png", compat: ["Pikachu", "Eevee", "Rattata"] },
+      { id: 33, name: "Full Heal", category: "Potions", rarity: "Uncommon", qty: 10, buy: 600, sell: 300, desc: "A spray-type medicine that heals all status conditions of a single Pokémon.", img: "https://archives.bulbagarden.net/media/upload/0/07/Dream_Full_Heal_Sprite.png", compat: ["Charizard", "Blastoise", "Venusaur"] },
+      
+      { id: 12, name: "Revive", category: "Battle Items", rarity: "Rare", qty: 10, buy: 1500, sell: 750, desc: "Revives a fainted Pokémon, restoring 50% of its max HP.", img: "https://archives.bulbagarden.net/media/upload/8/8c/Dream_Revive_Sprite.png", compat: ["All Pokémon"] },
+      { id: 13, name: "Max Revive", category: "Battle Items", rarity: "Epic", qty: 3, buy: 4000, sell: 2000, desc: "Revives a fainted Pokémon, fully restoring its HP.", img: "https://archives.bulbagarden.net/media/upload/4/45/Dream_Max_Revive_Sprite.png", compat: ["All Pokémon"] },
+      { id: 14, name: "Rare Candy", category: "Battle Items", rarity: "Legendary", qty: 5, buy: 10000, sell: 5000, desc: "A candy that raises the level of a single Pokémon by one.", img: "https://archives.bulbagarden.net/media/upload/0/02/Dream_Rare_Candy_Sprite.png", compat: ["All Pokémon"] },
+      { id: 15, name: "PP Max", category: "Battle Items", rarity: "Epic", qty: 2, buy: 9800, sell: 4900, desc: "Maximizes the PP of all moves for a single Pokémon.", img: "https://archives.bulbagarden.net/media/upload/5/5c/Dream_PP_Max_Sprite.png", compat: ["Mewtwo", "Rayquaza", "Kyogre"] },
+      { id: 34, name: "X Attack", category: "Battle Items", rarity: "Uncommon", qty: 8, buy: 1000, sell: 500, desc: "An item that sharply boosts Attack during battle.", img: "https://archives.bulbagarden.net/media/upload/d/df/Dream_X_Attack_Sprite.png", compat: ["Machamp", "Lucario", "Scizor"] },
+      { id: 35, name: "X Defense", category: "Battle Items", rarity: "Uncommon", qty: 8, buy: 1000, sell: 500, desc: "An item that sharply boosts Defense during battle.", img: "https://archives.bulbagarden.net/media/upload/d/d4/Dream_X_Defense_Sprite.png", compat: ["Steelix", "Cloyster", "Snorlax"] },
+      { id: 36, name: "Elixir", category: "Battle Items", rarity: "Rare", qty: 4, buy: 3000, sell: 1500, desc: "Restores 10 PP to all moves for a single Pokémon.", img: "https://archives.bulbagarden.net/media/upload/2/29/Dream_Elixir_Sprite.png", compat: ["Alakazam", "Gengar"] },
+      { id: 37, name: "Max Elixir", category: "Battle Items", rarity: "Epic", qty: 2, buy: 4500, sell: 2250, desc: "Fully restores the PP of all moves for a single Pokémon.", img: "https://archives.bulbagarden.net/media/upload/2/2d/Dream_Max_Elixir_Sprite.png", compat: ["Mewtwo", "Rayquaza"] },
+      
+      { id: 16, name: "Fire Stone", category: "Evolution Stones", rarity: "Rare", qty: 3, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/9/92/Dream_Fire_Stone_Sprite.png", compat: ["Growlithe", "Vulpix", "Eevee"] },
+      { id: 17, name: "Water Stone", category: "Evolution Stones", rarity: "Rare", qty: 4, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/2/29/Dream_Water_Stone_Sprite.png", compat: ["Poliwhirl", "Shellder", "Eevee"] },
+      { id: 18, name: "Thunder Stone", category: "Evolution Stones", rarity: "Rare", qty: 2, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/a/a5/Dream_Thunder_Stone_Sprite.png", compat: ["Pikachu", "Eevee"] },
+      { id: 19, name: "Leaf Stone", category: "Evolution Stones", rarity: "Rare", qty: 2, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/b/b3/Dream_Leaf_Stone_Sprite.png", compat: ["Gloom", "Weepinbell", "Eevee"] },
+      { id: 20, name: "Moon Stone", category: "Evolution Stones", rarity: "Rare", qty: 1, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/3/32/Dream_Moon_Stone_Sprite.png", compat: ["Nidorino", "Nidorina", "Clefairy"] },
+      { id: 21, name: "Sun Stone", category: "Evolution Stones", rarity: "Rare", qty: 2, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/a/a4/Dream_Sun_Stone_Sprite.png", compat: ["Gloom", "Sunkern"] },
+      { id: 38, name: "Shiny Stone", category: "Evolution Stones", rarity: "Rare", qty: 1, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/f/f4/Dream_Shiny_Stone_Sprite.png", compat: ["Togetic", "Roselia"] },
+      { id: 39, name: "Dusk Stone", category: "Evolution Stones", rarity: "Rare", qty: 2, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/f/f2/Dream_Dusk_Stone_Sprite.png", compat: ["Murkrow", "Misdreavus"] },
+      { id: 40, name: "Dawn Stone", category: "Evolution Stones", rarity: "Rare", qty: 1, buy: 3000, sell: 1500, desc: "A peculiar stone that can make certain Pokémon evolve.", img: "https://archives.bulbagarden.net/media/upload/d/de/Dream_Dawn_Stone_Sprite.png", compat: ["Kirlia", "Snorunt"] },
+      
+      { id: 22, name: "Sitrus Berry", category: "Berries", rarity: "Uncommon", qty: 15, buy: 200, sell: 100, desc: "A Berry that restores 25% of maximum HP when consumed.", img: "https://archives.bulbagarden.net/media/upload/a/aa/Dream_Sitrus_Berry_Sprite.png", compat: ["Snorlax", "Blissey", "Chansey"] },
+      { id: 23, name: "Oran Berry", category: "Berries", rarity: "Common", qty: 25, buy: 80, sell: 40, desc: "A Berry that restores HP by 10 points when consumed.", img: "https://archives.bulbagarden.net/media/upload/0/0c/Dream_Oran_Berry_Sprite.png", compat: ["Pikachu", "Eevee", "Pichu"] },
+      { id: 41, name: "Pecha Berry", category: "Berries", rarity: "Common", qty: 20, buy: 80, sell: 40, desc: "A Berry that cures a Pokémon of poisoning when consumed.", img: "https://archives.bulbagarden.net/media/upload/6/62/Dream_Pecha_Berry_Sprite.png", compat: ["Pikachu", "Eevee", "Rattata"] },
+      { id: 42, name: "Cheri Berry", category: "Berries", rarity: "Common", qty: 20, buy: 80, sell: 40, desc: "A Berry that cures a Pokémon of paralysis when consumed.", img: "https://archives.bulbagarden.net/media/upload/a/a6/Dream_Cheri_Berry_Sprite.png", compat: ["Pikachu", "Eevee", "Rattata"] },
+      { id: 43, name: "Lum Berry", category: "Berries", rarity: "Rare", qty: 8, buy: 500, sell: 250, desc: "A Berry that cures any status condition when consumed.", img: "https://archives.bulbagarden.net/media/upload/d/d3/Dream_Lum_Berry_Sprite.png", compat: ["Garchomp", "Dragonite", "Tyranitar"] },
+      
+      { id: 24, name: "Leftovers", category: "Held Items", rarity: "Epic", qty: 2, buy: 4000, sell: 2000, desc: "An item to be held by a Pokémon. HP is gradually restored during battle.", img: "https://archives.bulbagarden.net/media/upload/8/88/Dream_Leftovers_Sprite.png", compat: ["Snorlax", "Slowbro", "Steelix"] },
+      { id: 25, name: "Choice Band", category: "Held Items", rarity: "Rare", qty: 1, buy: 3000, sell: 1500, desc: "An item to be held by a Pokémon. Boosts Attack, but limits moves.", img: "https://archives.bulbagarden.net/media/upload/0/09/Dream_Choice_Band_Sprite.png", compat: ["Garchomp", "Machamp", "Scizor"] },
+      { id: 44, name: "Choice Specs", category: "Held Items", rarity: "Rare", qty: 1, buy: 3000, sell: 1500, desc: "An item to be held by a Pokémon. Boosts Sp. Atk, but limits moves.", img: "https://archives.bulbagarden.net/media/upload/e/e6/Dream_Choice_Specs_Sprite.png", compat: ["Alakazam", "Gengar", "Gardevoir"] },
+      { id: 45, name: "Choice Scarf", category: "Held Items", rarity: "Rare", qty: 2, buy: 3000, sell: 1500, desc: "An item to be held by a Pokémon. Boosts Speed, but limits moves.", img: "https://archives.bulbagarden.net/media/upload/6/6a/Dream_Choice_Scarf_Sprite.png", compat: ["Garchomp", "Hydreigon", "Rotom"] },
+      { id: 46, name: "Life Orb", category: "Held Items", rarity: "Epic", qty: 1, buy: 4000, sell: 2000, desc: "An item to be held by a Pokémon. Boosts the power of moves, but costs HP on hit.", img: "https://archives.bulbagarden.net/media/upload/a/a8/Dream_Life_Orb_Sprite.png", compat: ["Lucario", "Gengar", "Greninja"] },
+      { id: 47, name: "Focus Sash", category: "Held Items", rarity: "Epic", qty: 2, buy: 4000, sell: 2000, desc: "An item to be held by a Pokémon. Prevents fainting from full HP, leaving 1 HP.", img: "https://archives.bulbagarden.net/media/upload/e/ed/Dream_Focus_Sash_Sprite.png", compat: ["Alakazam", "Gengar", "Weavile"] },
+      
+      { id: 26, name: "Bicycle", category: "Key Items", rarity: "Epic", qty: 1, buy: 0, sell: 0, desc: "A folding bicycle that enables fast travel in the overworld.", img: "https://archives.bulbagarden.net/media/upload/a/ab/Key_Bicycle_Sprite.png", compat: ["Trainer"] },
+      { id: 27, name: "Town Map", category: "Key Items", rarity: "Uncommon", qty: 1, buy: 0, sell: 0, desc: "A map of the region showing towns and geography.", img: "https://archives.bulbagarden.net/media/upload/5/5a/Key_Town_Map_Sprite.png", compat: ["Trainer"] },
+      { id: 48, name: "Old Rod", category: "Key Items", rarity: "Common", qty: 1, buy: 0, sell: 0, desc: "Use it by any body of water to fish for wild Pokémon.", img: "https://archives.bulbagarden.net/media/upload/6/60/Key_Fishing_Rod_Sprite.png", compat: ["Trainer"] },
+      { id: 49, name: "Super Rod", category: "Key Items", rarity: "Epic", qty: 1, buy: 0, sell: 0, desc: "Use it by any body of water to fish for rare wild Pokémon.", img: "https://archives.bulbagarden.net/media/upload/3/31/Key_Super_Rod_Sprite.png", compat: ["Trainer"] },
+      { id: 50, name: "Shiny Charm", category: "Key Items", rarity: "Legendary", qty: 1, buy: 0, sell: 0, desc: "Increases the chance of encountering Shiny Pokémon.", img: "https://archives.bulbagarden.net/media/upload/b/bd/Key_Shiny_Charm_Sprite.png", compat: ["Trainer"] },
+      { id: 51, name: "Oval Charm", category: "Key Items", rarity: "Legendary", qty: 1, buy: 0, sell: 0, desc: "Increases the chance of finding Eggs at the Nursery.", img: "https://archives.bulbagarden.net/media/upload/2/25/Key_Oval_Charm_Sprite.png", compat: ["Trainer"] }
+    ];
+
+    const categoryIcons = {
+      "All Items": `<svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>`,
+      "Poké Balls": `<svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-3.31 0-6-2.69-6-6h12c0 3.31-2.69 6-6 6zM6.4 12c.35-2.28 2.07-4.12 4.35-4.63V9c0 .55.45 1 1 1s1-.45 1-1V7.37c2.28.51 4 2.35 4.35 4.63H6.4z"/></svg>`,
+      "Potions": `<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>`,
+      "Battle Items": `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`,
+      "Evolution Stones": `<svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>`,
+      "Berries": `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.9C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>`,
+      "Held Items": `<svg viewBox="0 0 24 24"><path d="M18 10h-4V6c0-1.1-.9-2-2-2s-2 .9-2 2v4H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6c0-1.1-.9-2-2-2zm-6 8H6v-4h6v4zm6 0h-4v-4h4v4z"/></svg>`,
+      "Key Items": `<svg viewBox="0 0 24 24"><path d="M12.65 11.66c.23-.35.35-.76.35-1.16 0-1.38-1.12-2.5-2.5-2.5S8 9.12 8 10.5c0 .4.12.81.35 1.16L5 15v3h3v-2l1.65-1.65c.35.23.76.35 1.16.35 1.38 0 2.5-1.12 2.5-2.5 0-.4-.12-.81-.35-1.16L19 7h-3L12.65 11.66z"/></svg>`
+    };
+
+    // State Variables
+    let inventory = [];
+    let activeCategory = "All Items";
+    let activeItemId = null;
+    let focusedCardIndex = -1;
+
+    // Load user role & Welcome info
+    function checkUserRole() {
+      const userStr = localStorage.getItem("pokemonNexusUser");
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user) {
+            if (user.role === 'admin' || user.isAdmin) {
+              const adminLink = document.getElementById("adminLink") || document.getElementById("adminNavLink");
+              if (adminLink) {
+                adminLink.style.display = "inline-flex";
+                adminLink.style.visibility = "visible";
+                adminLink.style.opacity = "1";
+              }
+            }
+            if (user.trainerName) {
+              document.getElementById("trainerWelcome").textContent = "Welcome, " + user.trainerName;
+            }
+          }
+        } catch(e) {
+          console.error(e);
+        }
+      }
+    }
+
+    // Initialize Inventory Data
+        // Initialize Inventory Data
+    function initInventory() {
+      const stored = localStorage.getItem("pokemonNexusInventory");
+      if (stored) {
+        inventory = JSON.parse(stored);
+        // Migrate old pokeapi pixel URLs to new premium artwork
+        let migrated = false;
+        inventory.forEach(item => {
+          if (item.img && !item.img.includes("archives.bulbagarden.net")) {
+            const defItem = defaultInventory.find(x => x.name.toLowerCase() === item.name.toLowerCase());
+            if (defItem) {
+              item.img = defItem.img;
+              migrated = true;
+            }
+          }
+        });
+        // Check if any default items are missing from stored inventory and add them automatically
+        defaultInventory.forEach(defItem => {
+          const exists = inventory.some(x => x.name.toLowerCase() === defItem.name.toLowerCase());
+          if (!exists) {
+            inventory.push({...defItem});
+            migrated = true;
+          }
+        });
+        if (migrated) {
+          localStorage.setItem("pokemonNexusInventory", JSON.stringify(inventory));
+        }
+      } else {
+        inventory = [...defaultInventory];
+        localStorage.setItem("pokemonNexusInventory", JSON.stringify(inventory));
+      }
+    }
+
+    // Save Inventory
+    function saveInventory() {
+      localStorage.setItem("pokemonNexusInventory", JSON.stringify(inventory));
+      updateStats();
+    }
+
+    // Update Statistics Cards
+    function updateStats() {
+      const totalItems = inventory.length;
+      const totalQty = inventory.reduce((acc, curr) => acc + curr.qty, 0);
+      const rareItems = inventory.filter(x => x.rarity === "Rare" || x.rarity === "Epic" || x.rarity === "Legendary").length;
+      
+      document.getElementById("stat-total-items").textContent = totalItems;
+      document.getElementById("stat-total-qty").textContent = totalQty;
+      document.getElementById("stat-rare-items").textContent = rareItems;
+      
+      const capacityVal = document.getElementById("stat-capacity-val");
+      const capacityBar = document.getElementById("stat-capacity-bar");
+      const capacityWarn = document.getElementById("stat-capacity-warn");
+      
+      capacityVal.textContent = `${totalQty}/${MAX_CAPACITY}`;
+      
+      const percent = Math.min(100, (totalQty / MAX_CAPACITY) * 100);
+      capacityBar.style.width = percent + "%";
+      
+      if (percent >= 85) {
+        capacityBar.classList.add("warning");
+        capacityWarn.style.display = "block";
+      } else {
+        capacityBar.classList.remove("warning");
+        capacityWarn.style.display = "none";
+      }
+    }
+
+    // Render Category horizontal bar
+    function renderCategoryStrip() {
+      const container = document.getElementById("category-strip");
+      container.innerHTML = "";
+      
+      Object.keys(categoryIcons).forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = `cat-btn ${cat === activeCategory ? 'active' : ''}`;
+        btn.innerHTML = `${categoryIcons[cat]} ${cat}`;
+        btn.onclick = () => {
+          playSound('click');
+          activeCategory = cat;
+          renderCategoryStrip();
+          renderInventoryGrid();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // Filter, Search, Sort & Render Grid
+    function renderInventoryGrid() {
+      const grid = document.getElementById("inventory-grid");
+      grid.innerHTML = "";
+      
+      const searchVal = document.getElementById("search-input").value.toLowerCase().trim();
+      const sortVal = document.getElementById("sort-control").value;
+      const filterRarity = document.getElementById("filter-rarity-control").value;
+      
+      let filtered = inventory.filter(item => {
+        const matchesCategory = (activeCategory === "All Items" || item.category === activeCategory);
+        const matchesSearch = item.name.toLowerCase().includes(searchVal);
+        const matchesRarity = (filterRarity === "all" || item.rarity === filterRarity);
+        return matchesCategory && matchesSearch && matchesRarity;
+      });
+      
+      // Sort logic
+      const rarityWeight = { "Common": 1, "Uncommon": 2, "Rare": 3, "Epic": 4, "Legendary": 5 };
+      if (sortVal === "name-asc") {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (sortVal === "name-desc") {
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+      } else if (sortVal === "qty-desc") {
+        filtered.sort((a, b) => b.qty - a.qty);
+      } else if (sortVal === "qty-asc") {
+        filtered.sort((a, b) => a.qty - b.qty);
+      } else if (sortVal === "rarity-desc") {
+        filtered.sort((a, b) => rarityWeight[b.rarity] - rarityWeight[a.rarity]);
+      } else if (sortVal === "rarity-asc") {
+        filtered.sort((a, b) => rarityWeight[a.rarity] - rarityWeight[b.rarity]);
+      }
+      
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: rgba(255,255,255,0.45); font-weight: 500;">No items found matching the selected filters.</div>`;
+        return;
+      }
+      
+      filtered.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = `item-card ${item.rarity.toLowerCase()}`;
+        card.tabIndex = 0; // keyboard support
+        card.setAttribute("role", "listitem");
+        card.setAttribute("aria-label", `${item.name}, Rarity: ${item.rarity}, Quantity: ${item.qty}`);
+        
+        card.innerHTML = `
+          <div class="item-card-inner">
+            <div class="item-icon-container">
+              <img class="item-card-img" src="${item.img || 'https://archives.bulbagarden.net/media/upload/7/79/Dream_Pok%C3%A9_Ball_Sprite.png'}" alt="${item.name}" loading="lazy">
+            </div>
+            <h3 class="item-name">${item.name}</h3>
+            <div class="item-meta-row">
+              <span class="rarity-tag ${item.rarity.toLowerCase()}">${item.rarity}</span>
+              <span class="item-qty">x${item.qty}</span>
+            </div>
+          </div>
+        `;
+        
+        // Tilt Hover Parallax Effect
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const xc = rect.width / 2;
+          const yc = rect.height / 2;
+          const angleX = (yc - y) / 10;
+          const angleY = (x - xc) / 10;
+          card.style.transform = `perspective(500px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.04, 1.04, 1.04)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = "perspective(500px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+        });
+        
+        // Tooltip listeners
+        card.addEventListener('mouseenter', (e) => {
+          playSound('hover');
+          showTooltip(e, item);
+        });
+        card.addEventListener('mousemove', (e) => {
+          moveTooltip(e);
+        });
+        card.addEventListener('mouseleave', () => {
+          hideTooltip();
+        });
+        
+        // Click / Open Details Modal
+        card.onclick = () => {
+          playSound('click');
+          openDetailsModal(item);
+        };
+        
+        // Keyboard handler for card focus
+        card.onkeydown = (e) => {
+          if (e.key === "Enter") {
+            playSound('click');
+            openDetailsModal(item);
+          }
+        };
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // Tooltip Functions
+    const tooltip = document.getElementById("custom-tooltip");
+    function showTooltip(e, item) {
+      tooltip.innerHTML = `
+        <div class="tooltip-title">${item.name}</div>
+        <div style="opacity: 0.8; margin-bottom:4px;">Rarity: <b style="color:var(--yellow)">${item.rarity}</b></div>
+        <div>${item.desc}</div>
+        <div class="tooltip-compat">Compats: ${item.compat ? item.compat.slice(0,3).join(', ') : 'All Pokémon'}</div>
+      `;
+      tooltip.style.opacity = 1;
+      moveTooltip(e);
+    }
+    function moveTooltip(e) {
+      tooltip.style.left = (e.pageX + 15) + "px";
+      tooltip.style.top = (e.pageY + 15) + "px";
+    }
+    function hideTooltip() {
+      tooltip.style.opacity = 0;
+    }
+
+    // Modal Details overlay logic
+    const detailsModal = document.getElementById("details-modal");
+    function openDetailsModal(item) {
+      activeItemId = item.id;
+      
+      document.getElementById("modal-title").textContent = item.name;
+      document.getElementById("modal-img").src = item.img || 'https://archives.bulbagarden.net/media/upload/7/79/Dream_Pok%C3%A9_Ball_Sprite.png';
+      document.getElementById("modal-img").alt = item.name;
+      document.getElementById("modal-category").textContent = item.category;
+      document.getElementById("modal-desc").textContent = item.desc;
+      document.getElementById("modal-qty-val").textContent = item.qty;
+      
+      const badge = document.getElementById("modal-rarity-badge");
+      badge.textContent = item.rarity;
+      badge.className = `rarity-tag modal-header-tag ${item.rarity.toLowerCase()}`;
+      
+      document.getElementById("modal-buy-price").textContent = item.buy > 0 ? `$${item.buy}` : "N/A";
+      document.getElementById("modal-sell-price").textContent = item.sell > 0 ? `$${item.sell}` : "N/A";
+      
+      detailsModal.classList.add("show");
+    }
+
+    function closeDetailsModal(e) {
+      if (!e || e.target === detailsModal) {
+        playSound('click');
+        detailsModal.classList.remove("show");
+        activeItemId = null;
+      }
+    }
+
+    // Qty Adjuster inside Modal
+    function adjustQty(amount) {
+      const item = inventory.find(x => x.id === activeItemId);
+      if (!item) return;
+      
+      const newQty = item.qty + amount;
+      if (newQty < 1 || newQty > 999) return;
+      
+      item.qty = newQty;
+      saveInventory();
+      
+      // Update display with small pop animation
+      const display = document.getElementById("modal-qty-val");
+      display.textContent = item.qty;
+      display.classList.add("pop");
+      playSound('hover');
+      
+      setTimeout(() => {
+        display.classList.remove("pop");
+      }, 150);
+      
+      renderInventoryGrid();
+    }
+
+    // Use active item logic
+    function useActiveItem() {
+      const itemIndex = inventory.findIndex(x => x.id === activeItemId);
+      if (itemIndex === -1) return;
+      
+      const item = inventory[itemIndex];
+      playSound('use');
+      showToast(`Used 1x ${item.name}!`);
+      
+      item.qty--;
+      if (item.qty <= 0) {
+        inventory.splice(itemIndex, 1);
+        detailsModal.classList.remove("show");
+        // Play delete shrink visual on grid card next time
+      } else {
+        document.getElementById("modal-qty-val").textContent = item.qty;
+      }
+      
+      saveInventory();
+      renderInventoryGrid();
+    }
+
+    // Delete active item logic
+    function deleteActiveItem() {
+      const itemIndex = inventory.findIndex(x => x.id === activeItemId);
+      if (itemIndex === -1) return;
+      
+      const item = inventory[itemIndex];
+      playSound('discard');
+      showToast(`Discarded ${item.name} from Bag.`);
+      
+      // Locate the card in UI to play delete animation
+      const cards = document.querySelectorAll(".item-card");
+      let cardEl = null;
+      cards.forEach(c => {
+        if (c.innerHTML.includes(item.name)) {
+          cardEl = c;
+        }
+      });
+      
+      detailsModal.classList.remove("show");
+      
+      if (cardEl) {
+        cardEl.classList.add("card-deleted-animation");
+        setTimeout(() => {
+          inventory.splice(itemIndex, 1);
+          saveInventory();
+          renderInventoryGrid();
+        }, 400);
+      } else {
+        inventory.splice(itemIndex, 1);
+        saveInventory();
+        renderInventoryGrid();
+      }
+    }
+
+    // Add / Edit Forms overlay controls
+    const formModal = document.getElementById("form-modal");
+    let isEditing = false;
+
+    function openAddForm() {
+      isEditing = false;
+      playSound('click');
+      document.getElementById("form-title").textContent = "Add Custom Item";
+      document.getElementById("item-form").reset();
+      formModal.classList.add("show");
+    }
+
+    function openEditFormFromModal() {
+      const item = inventory.find(x => x.id === activeItemId);
+      if (!item) return;
+      
+      isEditing = true;
+      playSound('click');
+      document.getElementById("form-title").textContent = "Edit Item Details";
+      
+      document.getElementById("form-item-name").value = item.name;
+      document.getElementById("form-item-cat").value = item.category;
+      document.getElementById("form-item-rarity").value = item.rarity;
+      document.getElementById("form-item-qty").value = item.qty;
+      document.getElementById("form-item-image").value = item.img || "";
+      document.getElementById("form-item-buy").value = item.buy;
+      document.getElementById("form-item-sell").value = item.sell;
+      document.getElementById("form-item-desc").value = item.desc;
+      
+      formModal.classList.add("show");
+    }
+
+    function closeFormModal(e) {
+      if (!e || e.target === formModal) {
+        playSound('click');
+        formModal.classList.remove("show");
+      }
+    }
+
+    // Save / Add Form submit
+    function saveFormItem(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById("form-item-name").value.trim();
+      const cat = document.getElementById("form-item-cat").value;
+      const rarity = document.getElementById("form-item-rarity").value;
+      const qty = parseInt(document.getElementById("form-item-qty").value);
+      const img = document.getElementById("form-item-image").value.trim() || getDefaultImage(cat);
+      const buy = parseInt(document.getElementById("form-item-buy").value) || 0;
+      const sell = parseInt(document.getElementById("form-item-sell").value) || 0;
+      const desc = document.getElementById("form-item-desc").value.trim();
+      
+      if (isEditing) {
+        // Edit item
+        const item = inventory.find(x => x.id === activeItemId);
+        if (item) {
+          item.name = name;
+          item.category = cat;
+          item.rarity = rarity;
+          item.qty = qty;
+          item.img = img;
+          item.buy = buy;
+          item.sell = sell;
+          item.desc = desc;
+          
+          showToast(`Updated details for ${name}!`);
+          playSound('success');
+        }
+      } else {
+        // Add new item
+        const newItem = {
+          id: Date.now(),
+          name,
+          category: cat,
+          rarity,
+          qty,
+          img,
+          buy,
+          sell,
+          desc,
+          compat: getCategoryCompats(cat)
+        };
+        
+        inventory.push(newItem);
+        showToast(`${name} added to Bag!`);
+        playSound('success');
+        
+        // Trigger fly-in animation on next render grid
+        setTimeout(() => {
+          const cards = document.querySelectorAll(".item-card");
+          if (cards.length > 0) {
+            const lastCard = cards[cards.length - 1];
+            lastCard.classList.add("card-added-animation");
+          }
+        }, 100);
+      }
+      
+      saveInventory();
+      renderInventoryGrid();
+      
+      formModal.classList.remove("show");
+      detailsModal.classList.remove("show");
+    }
+
+    function getDefaultImage(cat) {
+      if (cat === "Poké Balls") return "https://archives.bulbagarden.net/media/upload/7/79/Dream_Pok%C3%A9_Ball_Sprite.png";
+      if (cat === "Potions") return "https://archives.bulbagarden.net/media/upload/d/df/Dream_Potion_Sprite.png";
+      if (cat === "Berries") return "https://archives.bulbagarden.net/media/upload/0/0c/Dream_Oran_Berry_Sprite.png";
+      return "https://archives.bulbagarden.net/media/upload/0/02/Dream_Rare_Candy_Sprite.png";
+    }
+
+    function getCategoryCompats(cat) {
+      if (cat === "Poké Balls") return ["Wild Pokémon"];
+      if (cat === "Potions" || cat === "Berries") return ["Pikachu", "Charizard", "Blastoise", "Venusaur"];
+      return ["All Pokémon"];
+    }
+
+    // Toast Notification utility
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => {
+        t.classList.remove("show");
+      }, 2500);
+    }
+
+    // Keyboard support - arrow key grid navigation
+    document.addEventListener("keydown", (e) => {
+      // ESC closes modal
+      if (e.key === "Escape") {
+        if (formModal.classList.contains("show")) {
+          formModal.classList.remove("show");
+          playSound('click');
+        } else if (detailsModal.classList.contains("show")) {
+          detailsModal.classList.remove("show");
+          playSound('click');
+        }
+        return;
+      }
+      
+      // Grid arrow key navigation when modal is NOT open
+      if (!detailsModal.classList.contains("show") && !formModal.classList.contains("show")) {
+        const cards = document.querySelectorAll(".item-card");
+        if (cards.length === 0) return;
+        
+        if (e.key === "ArrowRight") {
+          focusedCardIndex = (focusedCardIndex + 1) % cards.length;
+          cards[focusedCardIndex].focus();
+          e.preventDefault();
+        } else if (e.key === "ArrowLeft") {
+          focusedCardIndex = (focusedCardIndex - 1 + cards.length) % cards.length;
+          cards[focusedCardIndex].focus();
+          e.preventDefault();
+        } else if (e.key === "ArrowDown") {
+          // Move down roughly 5 items (grid columns)
+          focusedCardIndex = (focusedCardIndex + 5) % cards.length;
+          cards[focusedCardIndex].focus();
+          e.preventDefault();
+        } else if (e.key === "ArrowUp") {
+          focusedCardIndex = (focusedCardIndex - 5 + cards.length) % cards.length;
+          cards[focusedCardIndex].focus();
+          e.preventDefault();
+        }
+      }
+    });
+
+    // Search and filter listeners
+    document.getElementById("search-input").addEventListener("input", renderInventoryGrid);
+    document.getElementById("sort-control").addEventListener("change", () => { playSound('hover'); renderInventoryGrid(); });
+    document.getElementById("filter-rarity-control").addEventListener("change", () => { playSound('hover'); renderInventoryGrid(); });
+
+    // Sparks Generator (Embers) - 80 embers
+    function generateSparks() {
+      const container = document.getElementById("sparks-container");
+      for (let i = 0; i < 80; i++) {
+        const s = document.createElement("span");
+        s.className = "spark";
+        s.style.left = Math.random() * 100 + "vw";
+        s.style.animationDuration = (6 + Math.random() * 7) + "s";
+        s.style.animationDelay = Math.random() * 5 + "s";
+        container.appendChild(s);
+      }
+    }
+
+    // Run Initializers
+    checkUserRole();
+
+    // Page load console print
+    console.log("userRole =", localStorage.getItem("userRole"));
+
+    // Admin visibility logic
+    let parsedIsAdmin = false;
+    const userStr = localStorage.getItem("pokemonNexusUser");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && (user.role === "admin" || user.isAdmin)) {
+          parsedIsAdmin = true;
+        }
+      } catch (e) {}
+    }
+
+    const role =
+      localStorage.getItem("userRole") ||
+      localStorage.getItem("currentUserRole") ||
+      localStorage.getItem("role");
+
+    const isAdmin =
+      role === "admin" ||
+      localStorage.getItem("isAdmin") === "true" ||
+      parsedIsAdmin;
+
+    const adminNavLink = document.getElementById("adminNavLink") || document.getElementById("adminLink");
+    if (adminNavLink) {
+      if (isAdmin) {
+        adminNavLink.style.display = "inline-flex";
+        adminNavLink.style.visibility = "visible";
+        adminNavLink.style.opacity = "1";
+      } else {
+        adminNavLink.style.display = "none";
+      }
+    }
+    
+    
+    initInventory();
+    updateStats();
+    renderCategoryStrip();
+    renderInventoryGrid();
+    generateSparks();
+    
+    // Attach audio events to dropdowns and search inputs
+    attachSoundEvents();
+  </script>
+</body>
+</html>
