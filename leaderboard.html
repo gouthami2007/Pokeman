@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pokémon Nexus – Top Trainer Rankings</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --dark:   #0A0A18;
+    --panel:  #10102A;
+    --card:   #14142E;
+    --border: #2A2A5A;
+    --yellow: #FFD700;
+    --orange: #FF6B00;
+    --red:    #E3350D;
+    --blue:   #1A73E8;
+    --cyan:   #00D4FF;
+    --green:  #00C853;
+    --purple: #9C27B0;
+    --text:   #E8E8FF;
+    --muted:  #8888BB;
+    --nav-w:  240px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ══ POKEMON GAME BACKGROUND ══ */
+  #pokemon-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Animated grid floor */
+  #pokemon-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, #05050F 0%, #0A0A20 40%, #0D0D2A 60%, #080818 100%);
+  }
+
+  /* Pixel grid lines - game world floor */
+  .bg-grid {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 55%;
+    background-image:
+      linear-gradient(rgba(30,30,90,0.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,30,90,0.35) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(600px) rotateX(55deg);
+    transform-origin: bottom center;
+  }
+
+  /* Scanlines overlay */
+  .bg-scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+  }
+
+  /* Glow orbs */
+  .bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.18;
+  }
+  .bg-glow.g1 { width: 500px; height: 500px; background: #4A00E0; top: -100px; left: -100px; animation: driftA 14s ease-in-out infinite alternate; }
+  .bg-glow.g2 { width: 400px; height: 400px; background: #E3350D; top: 20%; right: -80px; animation: driftB 11s ease-in-out infinite alternate; }
+  .bg-glow.g3 { width: 300px; height: 300px; background: #FFD700; bottom: 10%; left: 30%; animation: driftA 17s ease-in-out infinite alternate; opacity: 0.12; }
+  .bg-glow.g4 { width: 350px; height: 350px; background: #00D4FF; bottom: -80px; right: 25%; animation: driftB 13s ease-in-out infinite alternate; opacity: 0.13; }
+
+  @keyframes driftA { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(30px, 40px) scale(1.1); } }
+  @keyframes driftB { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-40px, 20px) scale(0.95); } }
+
+  /* Floating Pokéballs */
+  .pokeball {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.07;
+    animation: floatBall linear infinite;
+  }
+  .pokeball::before {
+    content: '';
+    display: block;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 3px solid #FFD700;
+    box-shadow: inset 0 0 0 3px #FFD700;
+    background: linear-gradient(180deg, rgba(200,50,50,0.4) 0%, rgba(200,50,50,0.4) 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 100%);
+  }
+  .pokeball::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 30%; height: 30%;
+    border-radius: 50%;
+    border: 3px solid #FFD700;
+    background: rgba(255,255,255,0.2);
+  }
+
+  @keyframes floatBall {
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    5%   { opacity: 0.07; }
+    95%  { opacity: 0.07; }
+    100% { transform: translateY(-20vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Floating Pokemon sprite images */
+  .poke-sprite {
+    position: absolute;
+    opacity: 0.55;
+    animation: floatSprite ease-in-out infinite;
+    image-rendering: auto;
+    filter: drop-shadow(0 0 16px #FFD700AA) drop-shadow(0 0 32px #8800FF66);
+    user-select: none;
+    pointer-events: none;
+  }
+  @keyframes floatSprite {
+    0%   { transform: translateY(0px) scale(1); }
+    50%  { transform: translateY(-18px) scale(1.06); }
+    100% { transform: translateY(0px) scale(1); }
+  }
+
+  /* Stars / particles */
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #ffffff;
+    border-radius: 50%;
+    animation: twinkle ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0.1; transform: scale(1); }
+    50%      { opacity: 0.7; transform: scale(1.5); }
+  }
+
+  /* Lightning bolt effect */
+  .lightning {
+    position: absolute;
+    width: 2px;
+    background: linear-gradient(180deg, transparent, #FFD700, #FFD700, transparent);
+    opacity: 0;
+    animation: lightning 6s ease-in-out infinite;
+    border-radius: 1px;
+  }
+  @keyframes lightning {
+    0%,89%,100% { opacity: 0; }
+    90% { opacity: 0.25; }
+    91% { opacity: 0; }
+    92% { opacity: 0.15; }
+    93% { opacity: 0; }
+  }
+
+  /* Type-color streaks */
+  .type-streak {
+    position: absolute;
+    height: 1px;
+    opacity: 0;
+    border-radius: 1px;
+    animation: streak linear infinite;
+  }
+  @keyframes streak {
+    0%   { transform: translateX(-120%); opacity: 0; }
+    10%  { opacity: 0.35; }
+    90%  { opacity: 0.35; }
+    100% { transform: translateX(120vw); opacity: 0; }
+  }
+
+  /* XP bar pulse at top */
+  .xp-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #FFD700, #FF6B00, #E3350D, #9C27B0, #1A73E8, #00D4FF, #00C853, #FFD700);
+    background-size: 200% 100%;
+    animation: xpSlide 4s linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes xpSlide { 0% { background-position: 0% 0%; } 100% { background-position: 200% 0%; } }
+
+  /* ══ SIDE NAV ══ */
+  .sidenav {
+    position: fixed; top: 0; left: 0;
+    width: var(--nav-w); height: 100vh;
+    background: linear-gradient(180deg, rgba(10,10,28,0.95) 0%, rgba(7,7,18,0.98) 100%);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 100; overflow-y: auto;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .nav-logo::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 10%; right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--yellow), transparent);
+    opacity: 0.6;
+  }
+
+  .nav-logo-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--yellow);
+    line-height: 2;
+    letter-spacing: 1px;
+    text-shadow: 0 0 12px #FFD700AA, 0 0 24px #FFD70055;
+  }
+
+  /* Pixel Pokéball in nav logo */
+  .nav-logo-ball {
+    display: block;
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #CC2200 50%, #FFFFFF 50%);
+    border: 3px solid var(--yellow);
+    position: relative;
+    box-shadow: 0 0 10px #FFD70055;
+    animation: spin3d 6s linear infinite;
+  }
+  .nav-logo-ball::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--yellow);
+    z-index: 1;
+  }
+  .nav-logo-ball::after {
+    content: '';
+    position: absolute;
+    top: calc(50% - 1.5px); left: 0; right: 0;
+    height: 3px;
+    background: var(--yellow);
+  }
+  @keyframes spin3d {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
+
+  .nav-section {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: var(--muted);
+    padding: 14px 18px 4px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  .nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    font-size: 13px; font-weight: 600;
+    color: var(--muted); text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .nav-link:hover, .nav-link.active {
+    color: var(--yellow);
+    border-left-color: var(--yellow);
+    background: linear-gradient(90deg,#FFD70015,transparent);
+    text-shadow: 0 0 8px #FFD70066;
+  }
+  .nav-link .ni { font-size: 16px; min-width: 22px; }
+  .nav-divider { height: 1px; background: var(--border); margin: 8px 18px; }
+
+  .nav-badge {
+    margin-left: auto; background: var(--red);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 7px; border-radius: 20px;
+    box-shadow: 0 0 8px #E3350D88;
+  }
+
+  /* ══ MAIN ══ */
+  .main {
+    margin-left: var(--nav-w); flex: 1;
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: linear-gradient(90deg, rgba(14,14,32,0.92), rgba(20,20,48,0.92));
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+  }
+  .topbar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--yellow) 30%, var(--orange) 50%, var(--red) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+  .topbar-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px; font-weight: 900;
+    color: var(--yellow);
+    text-shadow: 0 0 20px #FFD70088, 0 0 40px #FFD70033;
+    letter-spacing: 2px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  /* Live indicator */
+  .live-dot {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; color: var(--green);
+    margin-left: auto;
+    letter-spacing: 1px;
+  }
+  .live-dot::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulseDot 1.5s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.4); opacity: 0.6; }
+  }
+
+  /* TABLE SECTION */
+  .table-section {
+    padding: 28px 32px 60px;
+    flex: 1;
+  }
+
+  .table-header-row {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px;
+  }
+  .table-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: var(--yellow); display: flex; align-items: center; gap: 8px;
+    text-shadow: 0 0 12px #FFD70066;
+  }
+  .search-box {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(14,14,40,0.85); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.2s;
+  }
+  .search-box:focus-within {
+    border-color: var(--yellow);
+    box-shadow: 0 0 12px #FFD70022;
+  }
+  .search-box input {
+    background: transparent; border: none; outline: none;
+    color: var(--text); font-family: 'Rajdhani', sans-serif;
+    font-size: 14px; font-weight: 600; width: 180px;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+
+  /* LEADERBOARD TABLE */
+  .lb-table { width: 100%; border-collapse: collapse; }
+
+  .lb-table thead tr {
+    background: rgba(12,12,30,0.9);
+    border-bottom: 2px solid var(--border);
+  }
+  .lb-table thead th {
+    padding: 14px 18px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; color: var(--muted);
+    text-align: left; letter-spacing: 1px;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .lb-table thead th.sortable { cursor: pointer; }
+  .lb-table thead th.sortable:hover { color: var(--yellow); }
+  .lb-table thead th .sort-arrow { opacity: 0.5; font-size: 9px; margin-left: 4px; }
+
+  .lb-table tbody tr {
+    border-bottom: 1px solid #1E1E3A;
+    transition: background 0.2s, transform 0.15s;
+    cursor: pointer;
+    position: relative;
+  }
+  .lb-table tbody tr:hover {
+    background: rgba(30,30,60,0.9) !important;
+    transform: scale(1.005);
+    box-shadow: 0 0 20px #FFD70022 !important;
+  }
+
+  .lb-table tbody tr.rank-1  { background: linear-gradient(90deg,rgba(42,21,0,0.9),rgba(26,16,0,0.85)); border-left: 4px solid var(--yellow); }
+  .lb-table tbody tr.rank-2  { background: linear-gradient(90deg,rgba(26,42,0,0.9),rgba(14,26,0,0.85)); border-left: 4px solid #AAFFAA; }
+  .lb-table tbody tr.rank-3  { background: linear-gradient(90deg,rgba(26,0,26,0.9),rgba(14,0,14,0.85)); border-left: 4px solid var(--purple); }
+  .lb-table tbody tr.rank-4  { background: linear-gradient(90deg,rgba(0,26,42,0.9),rgba(0,14,26,0.85)); border-left: 4px solid var(--blue); }
+  .lb-table tbody tr.rank-5  { background: linear-gradient(90deg,rgba(42,10,0,0.9),rgba(26,6,0,0.85)); border-left: 4px solid var(--red); }
+  .lb-table tbody tr.rank-6  { background: linear-gradient(90deg,rgba(0,42,26,0.9),rgba(0,26,14,0.85)); border-left: 4px solid var(--cyan); }
+  .lb-table tbody tr.rank-7  { background: linear-gradient(90deg,rgba(26,26,0,0.9),rgba(14,14,0,0.85)); border-left: 4px solid var(--orange); }
+  .lb-table tbody tr.rank-8  { background: linear-gradient(90deg,rgba(18,18,42,0.9),rgba(10,10,30,0.85)); border-left: 4px solid #AA88FF; }
+  .lb-table tbody tr.rank-9  { background: linear-gradient(90deg,rgba(26,10,10,0.9),rgba(14,6,6,0.85)); border-left: 4px solid #FF88AA; }
+  .lb-table tbody tr.rank-10 { background: linear-gradient(90deg,rgba(10,26,26,0.9),rgba(6,14,14,0.85)); border-left: 4px solid #00FFCC; }
+
+  .lb-table tbody td {
+    padding: 16px 18px;
+    font-size: 15px; font-weight: 600;
+    vertical-align: middle;
+  }
+
+  .rank-cell { text-align: center; }
+  .rank-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px; font-weight: 900; color: var(--muted);
+  }
+  .rank-icon { font-size: 22px; }
+
+  .trainer-cell { display: flex; align-items: center; gap: 14px; }
+  .trainer-avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+    border: 2px solid var(--border);
+    background: #1A1A3A;
+    position: relative;
+  }
+  .trainer-avatar .online-dot {
+    position: absolute; bottom: 0; right: 0;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green); border: 2px solid var(--dark);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .trainer-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+  }
+  .trainer-meta { font-size: 12px; color: var(--muted); }
+
+  .level-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(20,20,48,0.9); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 14px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px; font-weight: 700; color: #CC88FF;
+    text-shadow: 0 0 8px #CC88FF55;
+  }
+
+  .xp-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--yellow);
+    text-shadow: 0 0 10px #FFD70066;
+  }
+
+  .battles-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--red);
+    text-shadow: 0 0 8px #E3350D66;
+  }
+  .win-rate { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .rare-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--cyan);
+    text-shadow: 0 0 8px #00D4FF66;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* PAGINATION */
+  .pagination {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; padding: 24px 32px;
+    border-top: 1px solid var(--border);
+    background: rgba(10,10,24,0.7);
+    backdrop-filter: blur(8px);
+  }
+  .pg-btn {
+    background: rgba(14,14,40,0.85); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Rajdhani', sans-serif;
+    font-size: 14px; font-weight: 700;
+    padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .pg-btn:hover, .pg-btn.active {
+    border-color: var(--yellow); color: var(--yellow);
+    background: rgba(20,20,10,0.9);
+    box-shadow: 0 0 10px #FFD70033;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--yellow); }
+
+  @media(max-width:900px){
+    .sidenav{width:56px;}
+    .nav-logo-text{display:none;}
+    .nav-logo{justify-content:center;}
+    .nav-section,.nav-link span:not(.ni),.live-dot{display:none;}
+    .main{margin-left:56px;}
+    .table-section,.topbar{padding-left:16px;padding-right:16px;}
+    .lb-table thead th,.lb-table tbody td{padding:10px 10px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ POKEMON GAME BACKGROUND ═══ -->
+<div id="pokemon-bg">
+  <div class="bg-glow g1"></div>
+  <div class="bg-glow g2"></div>
+  <div class="bg-glow g3"></div>
+  <div class="bg-glow g4"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-scanlines"></div>
+  <div class="xp-bar"></div>
+
+  <!-- Floating Pokéballs -->
+  <div class="pokeball" style="width:120px;height:120px;left:5%;animation-duration:18s;animation-delay:0s;"></div>
+  <div class="pokeball" style="width:70px;height:70px;left:50%;animation-duration:22s;animation-delay:5s;"></div>
+  <div class="pokeball" style="width:90px;height:90px;left:80%;animation-duration:16s;animation-delay:9s;"></div>
+  <div class="pokeball" style="width:50px;height:50px;left:25%;animation-duration:25s;animation-delay:3s;"></div>
+  <div class="pokeball" style="width:100px;height:100px;left:65%;animation-duration:20s;animation-delay:12s;"></div>
+
+  <!-- Real Pokemon sprites from PokeAPI -->
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png"   style="width:220px;left:1%;top:5%;animation-duration:6s;animation-delay:0s;"   alt="Charizard"/>
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"  style="width:160px;left:86%;top:2%;animation-duration:5s;animation-delay:1s;"   alt="Pikachu"/>
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png" style="width:230px;left:8%;top:48%;animation-duration:7s;animation-delay:2s;"  alt="Mewtwo"/>
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png" style="width:200px;left:74%;top:50%;animation-duration:5.5s;animation-delay:3s;" alt="Dragonite"/>
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/131.png" style="width:190px;left:42%;top:2%;animation-duration:8s;animation-delay:1.5s;" alt="Lapras"/>
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png"  style="width:170px;left:88%;top:44%;animation-duration:6.5s;animation-delay:4s;" alt="Gengar"/>
+  <img class="poke-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png"  style="width:185px;left:30%;top:68%;animation-duration:7.5s;animation-delay:2s;" alt="Arcanine"/>
+
+  <!-- Stars -->
+  <div id="stars-container"></div>
+
+  <!-- Type streaks -->
+  <div class="type-streak" style="top:18%;width:200px;background:linear-gradient(90deg,transparent,#FF4500,transparent);animation-duration:7s;animation-delay:0s;"></div>
+  <div class="type-streak" style="top:35%;width:280px;background:linear-gradient(90deg,transparent,#1A73E8,transparent);animation-duration:9s;animation-delay:3s;"></div>
+  <div class="type-streak" style="top:55%;width:180px;background:linear-gradient(90deg,transparent,#FFD700,transparent);animation-duration:6s;animation-delay:6s;"></div>
+  <div class="type-streak" style="top:70%;width:240px;background:linear-gradient(90deg,transparent,#9C27B0,transparent);animation-duration:11s;animation-delay:2s;"></div>
+  <div class="type-streak" style="top:82%;width:160px;background:linear-gradient(90deg,transparent,#00D4FF,transparent);animation-duration:8s;animation-delay:8s;"></div>
+
+  <!-- Lightning -->
+  <div class="lightning" style="left:20%;top:10%;height:200px;width:2px;"></div>
+  <div class="lightning" style="left:70%;top:5%;height:150px;width:1px;animation-delay:3s;"></div>
+  <div class="lightning" style="left:85%;top:20%;height:180px;width:2px;animation-delay:7s;"></div>
+</div>
+
+<!-- ═══ SIDE NAV ═══ -->
+<nav class="sidenav">
+  <div class="nav-logo">
+    <span >⚡</span>
+    <p class="nav-logo-text">POKÉMON<br>NEXUS</p>
+  </div>
+
+  <a class="nav-link" href="#"><span class="ni">🏠</span><span>Home</span></a>
+  <a class="nav-link" href="#"><span class="ni">🎴</span><span>Pokémon Collection</span></a>
+  <a class="nav-link" href="#"><span class="ni">⚔️</span><span>Battle</span></a>
+  <a class="nav-link active" href="#"><span class="ni">🏆</span><span>Leaderboard</span><span class="nav-badge">Top</span></a>
+  <a class="nav-link" href="#"><span class="ni">🥇</span><span>Achievements</span></a>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-title">🏆 Top Pokémon Rankings</div>
+    
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <div class="table-header-row">
+      <div class="table-title">🏆 Leaderboard</div>
+      <div class="search-box">
+        🔍 <input type="text" id="searchInput" placeholder="Search trainer..."/>
+      </div>
+    </div>
+
+    <table class="lb-table">
+      <thead>
+        <tr>
+          <th style="width:60px">Rank</th>
+          <th>Trainer</th>
+          <th class="sortable">🔥 Trainer Level <span class="sort-arrow">⇅</span></th>
+          <th class="sortable">⭐ XP Points <span class="sort-arrow">▼</span></th>
+          <th class="sortable">⚔ Battle Wins <span class="sort-arrow">⇅</span></th>
+          <th class="sortable">💎 Rare Pokémon <span class="sort-arrow">⇅</span></th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr class="rank-1">
+          <td class="rank-cell"><span class="rank-icon">🥇</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🧑‍💼<span class="online-dot"></span></div>
+              <div>
+                <div class="trainer-name">Lucario_X</div>
+                <div class="trainer-meta">Fighting / Steel · 1.2m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 50</span></td>
+          <td><div class="xp-val">82,807 XP</div></td>
+          <td><div class="battles-val">138 W</div><div class="win-rate">Win Rate: 91%</div></td>
+          <td><span class="rare-val">💎 26</span></td>
+        </tr>
+
+        <tr class="rank-2">
+          <td class="rank-cell"><span class="rank-icon">🥈</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🧙‍♂️<span class="online-dot"></span></div>
+              <div>
+                <div class="trainer-name">Alakazam_Pro</div>
+                <div class="trainer-meta">Psychic · 1.5m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 50</span></td>
+          <td><div class="xp-val">80,509 XP</div></td>
+          <td><div class="battles-val">307 W</div><div class="win-rate">Win Rate: 88%</div></td>
+          <td><span class="rare-val">💎 21</span></td>
+        </tr>
+
+        <tr class="rank-3">
+          <td class="rank-cell"><span class="rank-icon">🥉</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🌿</div>
+              <div>
+                <div class="trainer-name">Venusaur_King</div>
+                <div class="trainer-meta">Grass / Poison · 2.0m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 24</span></td>
+          <td><div class="xp-val">79,122 XP</div></td>
+          <td><div class="battles-val">88 W</div><div class="win-rate">Win Rate: 79%</div></td>
+          <td><span class="rare-val">💎 11</span></td>
+        </tr>
+
+        <tr class="rank-4">
+          <td class="rank-cell"><span class="rank-num">4</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🐉</div>
+              <div>
+                <div class="trainer-name">Dragonite_98</div>
+                <div class="trainer-meta">Dragon / Flying · 2.2m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 34</span></td>
+          <td><div class="xp-val">68,965 XP</div></td>
+          <td><div class="battles-val">274 W</div><div class="win-rate">Win Rate: 82%</div></td>
+          <td><span class="rare-val">💎 20</span></td>
+        </tr>
+
+        <tr class="rank-5">
+          <td class="rank-cell"><span class="rank-num">5</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🦷</div>
+              <div>
+                <div class="trainer-name">Garchomp_V</div>
+                <div class="trainer-meta">Dragon / Ground · 1.9m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 19</span></td>
+          <td><div class="xp-val">67,584 XP</div></td>
+          <td><div class="battles-val">160 W</div><div class="win-rate">Win Rate: 76%</div></td>
+          <td><span class="rare-val">💎 6</span></td>
+        </tr>
+
+        <tr class="rank-6">
+          <td class="rank-cell"><span class="rank-num">6</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">💧</div>
+              <div>
+                <div class="trainer-name">BlastoiseMax</div>
+                <div class="trainer-meta">Water · 1.6m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 42</span></td>
+          <td><div class="xp-val">63,210 XP</div></td>
+          <td><div class="battles-val">201 W</div><div class="win-rate">Win Rate: 80%</div></td>
+          <td><span class="rare-val">💎 18</span></td>
+        </tr>
+
+        <tr class="rank-7">
+          <td class="rank-cell"><span class="rank-num">7</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">⚡</div>
+              <div>
+                <div class="trainer-name">Raichu_Bolt</div>
+                <div class="trainer-meta">Electric · 0.8m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 38</span></td>
+          <td><div class="xp-val">59,840 XP</div></td>
+          <td><div class="battles-val">189 W</div><div class="win-rate">Win Rate: 74%</div></td>
+          <td><span class="rare-val">💎 14</span></td>
+        </tr>
+
+        <tr class="rank-8">
+          <td class="rank-cell"><span class="rank-num">8</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">👻</div>
+              <div>
+                <div class="trainer-name">Gengar_Dark</div>
+                <div class="trainer-meta">Ghost / Poison · 1.5m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 31</span></td>
+          <td><div class="xp-val">54,390 XP</div></td>
+          <td><div class="battles-val">142 W</div><div class="win-rate">Win Rate: 71%</div></td>
+          <td><span class="rare-val">💎 9</span></td>
+        </tr>
+
+        <tr class="rank-9">
+          <td class="rank-cell"><span class="rank-num">9</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🔥</div>
+              <div>
+                <div class="trainer-name">Charizard_Z</div>
+                <div class="trainer-meta">Fire / Flying · 1.7m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 27</span></td>
+          <td><div class="xp-val">49,750 XP</div></td>
+          <td><div class="battles-val">115 W</div><div class="win-rate">Win Rate: 68%</div></td>
+          <td><span class="rare-val">💎 7</span></td>
+        </tr>
+
+        <tr class="rank-10">
+          <td class="rank-cell"><span class="rank-num">10</span></td>
+          <td>
+            <div class="trainer-cell">
+              <div class="trainer-avatar">🧊</div>
+              <div>
+                <div class="trainer-name">IceQueen_97</div>
+                <div class="trainer-meta">Ice / Water · 1.4m</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="level-badge">Lv. 22</span></td>
+          <td><div class="xp-val">44,120 XP</div></td>
+          <td><div class="battles-val">93 W</div><div class="win-rate">Win Rate: 65%</div></td>
+          <td><span class="rare-val">💎 5</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="pagination">
+    <button class="pg-btn">◀ Prev</button>
+    <button class="pg-btn active">1</button>
+    <button class="pg-btn">2</button>
+    <button class="pg-btn">3</button>
+    <button class="pg-btn">4</button>
+    <button class="pg-btn">5</button>
+    <button class="pg-btn">Next ▶</button>
+  </div>
+
+</main>
+
+<script>
+  // Nav links
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Row hover glow
+  document.querySelectorAll('.lb-table tbody tr').forEach(row => {
+    row.addEventListener('mouseenter', () => { row.style.boxShadow = '0 0 24px #FFD70028, inset 0 0 30px #FFD70008'; });
+    row.addEventListener('mouseleave', () => { row.style.boxShadow = ''; });
+  });
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.lb-table tbody tr').forEach(row => {
+      const name = row.querySelector('.trainer-name')?.textContent.toLowerCase() || '';
+      row.style.display = name.includes(q) ? '' : 'none';
+    });
+  });
+
+  // Pagination
+  document.querySelectorAll('.pg-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.pg-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Generate stars
+  const starsContainer = document.getElementById('stars-container');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 60}%;
+      width: ${Math.random() < 0.3 ? 3 : 2}px;
+      height: ${Math.random() < 0.3 ? 3 : 2}px;
+      animation-duration: ${2 + Math.random() * 3}s;
+      animation-delay: ${Math.random() * 4}s;
+      opacity: ${0.1 + Math.random() * 0.3};
+    `;
+    starsContainer.appendChild(star);
+  }
+</script>
+</body>
+</html>

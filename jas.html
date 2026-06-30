@@ -1,0 +1,786 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pokémon Nexus – Trainer Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-deep: #0d0e1a;
+    --bg-panel: #12141f;
+    --bg-card: #181a28;
+    --border: rgba(255,255,255,0.07);
+    --accent-fire: #ff6600;
+    --accent-gold: #ffcc00;
+    --text-primary: #f0f0ff;
+    --text-secondary: #8890b0;
+    --text-muted: #4a5070;
+    --sidebar-w: 240px;
+    --topbar-h: 56px;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  html, body { height: 100%; background: var(--bg-deep); background: radial-gradient(ellipse at 20% 80%, rgba(99,60,200,0.14) 0%, transparent 55%); }
+  #bgOverlay { position: fixed; inset: 0; z-index: 0; background: linear-gradient(160deg, rgba(13,10,5,0.6) 0%, rgba(5,8,20,0.75) 60%, rgba(13,14,26,0.9) 100%); }
+  #sparkCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+  .shell { display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: var(--topbar-h) 1fr; height: 100vh; position: relative; z-index: 2; }
+  .topbar { grid-column: 1 / -1; background: rgba(8,7,16,0.92); border-bottom: 1px solid rgba(255,120,0,0.2); display: flex; align-items: center; padding: 0 20px; gap: 16px; backdrop-filter: blur(16px); position: relative; z-index: 10; }
+  .logo { display: flex; align-items: center; gap: 8px; width: var(--sidebar-w); flex-shrink: 0; }
+  .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-fire), var(--accent-gold)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 12px rgba(255,100,0,0.4); }
+  .logo-text { font-size: 12px; font-weight: 700; line-height: 1.2; letter-spacing: 1px; }
+  .logo-text span { display: block; color: var(--accent-gold); font-size: 16px; letter-spacing: 2px; font-weight: 800; }
+  .topbar-page { font-weight: 600; font-size: 15px; flex: 1; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .coins-pill { background: rgba(255,204,0,0.12); border: 1px solid rgba(255,204,0,0.3); color: var(--accent-gold); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .coins-pill:hover { background: rgba(255,204,0,0.22); }
+  .level-pill { background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .notif-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-secondary); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+  .notif-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+  .sidebar { background: rgba(8,7,16,0.92); border-right: 1px solid rgba(255,120,0,0.12); padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; backdrop-filter: blur(16px); }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: all 0.18s; border: 1px solid transparent; user-select: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); transform: translateX(2px); }
+  .nav-item.active { background: rgba(255,102,0,0.15); border-color: rgba(255,102,0,0.3); color: var(--accent-gold); }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-badge { margin-left: auto; background: rgba(255,204,0,0.2); border: 1px solid rgba(255,204,0,0.4); color: var(--accent-gold); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; }
+  .nav-badge.new { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.4); color: #4ade80; animation: pulse-badge 2s infinite; }
+  @keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .sidebar-bottom { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+  .trainer-mini { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.04); }
+  .avatar-sm { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-fire), var(--accent-gold)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #1a0800; position: relative; flex-shrink: 0; overflow: hidden; }
+  .avatar-sm img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .online-dot { position: absolute; bottom: 0; right: 0; width: 9px; height: 9px; background: #22c55e; border-radius: 50%; border: 2px solid var(--bg-panel); }
+  .trainer-mini-name { font-size: 13px; font-weight: 600; }
+  .trainer-mini-rank { font-size: 11px; color: var(--accent-fire); }
+  .main { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .page-view { display: none; flex-direction: column; gap: 18px; }
+  .page-view.active { display: flex; }
+  .page-title { font-size: 22px; font-weight: 700; }
+  .page-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .profile-hero { background: linear-gradient(135deg, rgba(35,18,5,0.92) 0%, rgba(22,24,38,0.92) 100%); border: 1px solid rgba(255,140,0,0.25); border-radius: var(--radius); padding: 22px; display: flex; align-items: center; gap: 20px; position: relative; overflow: hidden; backdrop-filter: blur(10px); }
+  .profile-hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(255,102,0,0.14) 0%, transparent 70%); pointer-events: none; }
+  .avatar-lg-wrap { position: relative; flex-shrink: 0; }
+  .avatar-lg { width: 82px; height: 82px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-fire), var(--accent-gold)); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #1a0800; border: 3px solid rgba(255,204,0,0.5); box-shadow: 0 0 28px rgba(255,102,0,0.4); overflow: hidden; }
+  .avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-level { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); background: var(--accent-gold); color: #1a0800; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 6px; white-space: nowrap; }
+  .hero-info { flex: 1; min-width: 0; }
+  .hero-name { font-size: 24px; font-weight: 700; color: #fff; }
+  .hero-rank { font-size: 12px; color: var(--accent-gold); display: flex; align-items: center; gap: 4px; margin-top: 3px; margin-bottom: 10px; }
+  .gym-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .gym-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px; border: 1px solid; }
+  .gb-fire { color: #ff6644; border-color: rgba(255,102,68,0.4); background: rgba(255,102,68,0.12); }
+  .gb-water { color: #60a5fa; border-color: rgba(96,165,250,0.4); background: rgba(96,165,250,0.12); }
+  .gb-elec { color: #facc15; border-color: rgba(250,204,21,0.4); background: rgba(250,204,21,0.12); }
+  .gb-grass { color: #4ade80; border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.12); }
+  .gb-dragon { color: #c084fc; border-color: rgba(192,132,252,0.4); background: rgba(192,132,252,0.12); }
+  .xp-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; }
+  .xp-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .xp-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold)); box-shadow: 0 0 8px rgba(255,140,0,0.5); transition: width 0.8s ease; }
+  .hero-stats { display: flex; gap: 12px; flex-shrink: 0; }
+  .hstat { text-align: center; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 50%; width: 70px; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+  .hstat-val { font-size: 17px; font-weight: 700; color: #fff; }
+  .hstat-lbl { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
+  .hstat.coins { border-color: rgba(255,204,0,0.35); background: rgba(255,204,0,0.06); }
+  .hstat.coins .hstat-val { color: var(--accent-gold); }
+  .edit-btn { background: rgba(255,102,0,0.15); border: 1px solid rgba(255,102,0,0.35); color: #ffaa44; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
+  .edit-btn:hover { background: rgba(255,102,0,0.28); color: var(--accent-gold); transform: scale(1.03); }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .mini-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 5px; backdrop-filter: blur(8px); transition: border-color 0.2s, transform 0.2s; cursor: default; }
+  .mini-card:hover { border-color: rgba(255,140,0,0.3); transform: translateY(-2px); }
+  .mini-card-icon { font-size: 18px; }
+  .mini-card-val { font-size: 21px; font-weight: 700; }
+  .mini-card-lbl { font-size: 11px; color: var(--text-secondary); }
+  .grid22 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .section-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; backdrop-filter: blur(8px); }
+  .sec-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .sec-badge { font-size: 11px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; padding: 2px 8px; border-radius: 10px; }
+  .sec-badge-green { background: rgba(34,197,94,0.15) !important; border-color: rgba(34,197,94,0.3) !important; color: #4ade80 !important; }
+  .sec-badge-gold { background: rgba(255,204,0,0.15) !important; border-color: rgba(255,204,0,0.3) !important; color: var(--accent-gold) !important; }
+  .br-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .br-label { width: 60px; font-size: 13px; color: var(--text-secondary); }
+  .br-bar-wrap { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .br-bar { height: 100%; border-radius: 3px; }
+  .bar-green { background: linear-gradient(90deg, #16a34a, #4ade80); }
+  .bar-red { background: linear-gradient(90deg, #dc2626, #f87171); }
+  .bar-yellow { background: linear-gradient(90deg, #ca8a04, #facc15); }
+  .br-val { width: 40px; text-align: right; font-size: 13px; font-weight: 600; }
+  .val-green { color: #4ade80; } .val-red { color: #f87171; } .val-yellow { color: #facc15; }
+  .skill-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .skill-name { width: 58px; font-size: 13px; color: var(--text-secondary); }
+  .skill-bar-wrap { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .skill-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+  .skill-val { width: 28px; text-align: right; font-size: 13px; font-weight: 600; color: #22d3ee; }
+  .ach-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .ach-item:last-child { border-bottom: none; }
+  .ach-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .ach-icon.earned { background: rgba(255,204,0,0.15); }
+  .ach-icon.locked { background: rgba(255,255,255,0.05); opacity: 0.4; }
+  .ach-name { font-size: 13px; }
+  .ach-name.locked { color: var(--text-muted); }
+  .act-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .act-item:last-child { border-bottom: none; }
+  .act-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .act-text { flex: 1; font-size: 13px; }
+  .act-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .rewards-hero { background: linear-gradient(135deg, rgba(255,180,0,0.12) 0%, rgba(255,80,0,0.08) 50%, rgba(20,18,40,0.92) 100%); border: 1px solid rgba(255,200,0,0.3); border-radius: var(--radius); padding: 22px 26px; display: flex; align-items: center; justify-content: space-between; gap: 20px; position: relative; overflow: hidden; }
+  .rewards-hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 240px; height: 240px; background: radial-gradient(circle, rgba(255,200,0,0.15) 0%, transparent 70%); pointer-events: none; }
+  .rh-left h2 { font-size: 20px; font-weight: 700; color: var(--accent-gold); margin-bottom: 4px; }
+  .rh-left p { font-size: 13px; color: var(--text-secondary); }
+  .rh-stats { display: flex; gap: 20px; }
+  .rh-stat { text-align: center; }
+  .rh-stat-val { font-size: 22px; font-weight: 700; color: var(--accent-gold); }
+  .rh-stat-lbl { font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 1px; }
+  .reward-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .rtab { padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); color: var(--text-secondary); transition: all 0.2s; background: rgba(255,255,255,0.04); }
+  .rtab:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+  .rtab.active { background: rgba(255,204,0,0.15); border-color: rgba(255,204,0,0.4); color: var(--accent-gold); }
+  .rtab-content { display: none; }
+  .rtab-content.active { display: block; }
+  .daily-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .daily-chest { flex: 1; min-width: 80px; text-align: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 14px 8px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .daily-chest:hover { border-color: rgba(255,204,0,0.35); background: rgba(255,204,0,0.06); transform: translateY(-3px); }
+  .daily-chest.claimed { opacity: 0.45; cursor: default; }
+  .daily-chest.claimed:hover { transform: none; }
+  .daily-chest-icon { font-size: 26px; margin-bottom: 4px; }
+  .daily-chest-day { font-size: 10px; color: var(--text-muted); }
+  .daily-chest-val { font-size: 12px; font-weight: 700; color: var(--accent-gold); margin-top: 2px; }
+  .claimed-stamp { position: absolute; top: 6px; right: 6px; background: #22c55e; color: #000; font-size: 9px; font-weight: 700; border-radius: 4px; padding: 1px 5px; }
+  .reward-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); transition: all 0.2s; cursor: pointer; }
+  .reward-item:hover { background: rgba(255,204,0,0.07); border-color: rgba(255,204,0,0.25); transform: translateX(3px); }
+  .reward-item:last-child { margin-bottom: 0; }
+  .rew-icon { font-size: 22px; flex-shrink: 0; }
+  .rew-info { flex: 1; }
+  .rew-name { font-size: 13px; font-weight: 600; }
+  .rew-desc { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+  .rew-val { font-size: 13px; font-weight: 700; color: var(--accent-gold); background: rgba(255,204,0,0.1); border: 1px solid rgba(255,204,0,0.25); padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+  .rew-val.purple { color: #c084fc; background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.25); }
+  .rew-val.blue { color: #60a5fa; background: rgba(96,165,250,0.1); border-color: rgba(96,165,250,0.25); }
+  .rew-val.green { color: #4ade80; background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.25); }
+  .milestone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .milestone-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s; }
+  .milestone-card:hover { border-color: rgba(255,140,0,0.35); transform: translateY(-2px); }
+  .milestone-card.completed { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.04); }
+  .milestone-card.locked { opacity: 0.5; cursor: default; }
+  .milestone-card.locked:hover { transform: none; }
+  .ms-icon { font-size: 28px; flex-shrink: 0; }
+  .ms-info { flex: 1; }
+  .ms-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .ms-req { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+  .ms-prog { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .ms-prog-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold)); }
+  .ms-reward { font-size: 12px; font-weight: 700; color: var(--accent-gold); }
+  .shop-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .shop-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .shop-card:hover { border-color: rgba(255,200,0,0.4); transform: translateY(-3px); box-shadow: 0 8px 22px rgba(0,0,0,0.3); }
+  .shop-icon { font-size: 34px; margin-bottom: 8px; }
+  .shop-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .shop-desc { font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; }
+  .shop-btn { background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold)); border: none; color: #1a0800; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 7px; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .shop-btn:hover { opacity: 0.88; transform: scale(0.98); }
+  .poke-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+  .poke-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s; }
+  .poke-card:hover { border-color: rgba(255,140,0,0.4); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+  .poke-card-emoji { font-size: 32px; margin-bottom: 6px; }
+  .poke-card-name { font-size: 12px; font-weight: 600; }
+  .poke-card-type { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+  .poke-card-cp { font-size: 11px; font-weight: 700; color: var(--accent-gold); margin-top: 4px; }
+  .quest-item { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 14px; backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+  .quest-item:hover { border-color: rgba(255,140,0,0.35); transform: translateX(3px); }
+  .quest-icon { font-size: 26px; flex-shrink: 0; }
+  .quest-info { flex: 1; }
+  .quest-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .quest-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+  .quest-prog-wrap { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .quest-prog { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold)); }
+  .quest-reward { font-size: 12px; font-weight: 700; color: var(--accent-gold); white-space: nowrap; }
+  .quest-status { font-size: 11px; color: var(--text-muted); }
+  .battle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .battle-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; backdrop-filter: blur(8px); text-align: center; cursor: pointer; transition: all 0.2s; }
+  .battle-card:hover { border-color: rgba(255,100,0,0.4); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255,80,0,0.15); }
+  .battle-card-icon { font-size: 40px; margin-bottom: 10px; }
+  .battle-card-name { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+  .battle-card-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+  .battle-card-btn { background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold)); border: none; color: #1a0800; font-size: 13px; font-weight: 700; padding: 8px 20px; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .battle-card-btn:hover { opacity: 0.88; }
+  .lb-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 10px; margin-bottom: 8px; background: rgba(18,20,32,0.84); border: 1px solid var(--border); backdrop-filter: blur(8px); transition: all 0.2s; }
+  .lb-item:hover { border-color: rgba(255,140,0,0.25); }
+  .lb-item.me { border-color: rgba(255,204,0,0.4); background: rgba(255,204,0,0.05); }
+  .lb-rank { font-size: 16px; font-weight: 800; color: var(--text-muted); width: 28px; text-align: center; }
+  .lb-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; overflow: hidden; }
+  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .lb-name { flex: 1; font-size: 14px; font-weight: 600; }
+  .lb-score { font-size: 14px; font-weight: 700; color: var(--accent-gold); }
+  .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+  .inv-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s; }
+  .inv-card:hover { border-color: rgba(255,140,0,0.35); transform: translateY(-2px); }
+  .inv-icon { font-size: 28px; margin-bottom: 6px; }
+  .inv-name { font-size: 11px; font-weight: 600; }
+  .inv-qty { font-size: 13px; font-weight: 700; color: var(--accent-gold); margin-top: 3px; }
+  .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .admin-card { background: rgba(18,20,32,0.84); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s; }
+  .admin-card:hover { border-color: rgba(255,140,0,0.35); transform: translateY(-2px); }
+  .admin-card-icon { font-size: 28px; margin-bottom: 8px; }
+  .admin-card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .admin-card-desc { font-size: 12px; color: var(--text-secondary); }
+  .toast { position: fixed; bottom: 28px; right: 28px; background: rgba(24,26,40,0.97); border: 1px solid rgba(255,204,0,0.35); color: var(--accent-gold); padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(.34,1.56,.64,1); backdrop-filter: blur(12px); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .overlay.open { display: flex; }
+  .modal { background: #181a28; border: 1px solid rgba(255,140,0,0.3); border-radius: 16px; padding: 28px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--accent-gold); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .fgroup { display: flex; flex-direction: column; gap: 5px; }
+  .fgroup label { font-size: 12px; color: var(--text-secondary); }
+  .fgroup input, .fgroup select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text-primary); font-size: 14px; padding: 9px 12px; outline: none; transition: border-color 0.2s; }
+  .fgroup input:focus, .fgroup select:focus { border-color: rgba(255,140,0,0.6); }
+  .fgroup select option { background: #181a28; }
+  .photo-upload-row { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,140,0,0.3); border-radius: 10px; padding: 14px 16px; }
+  .photo-preview { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-fire), var(--accent-gold)); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #1a0800; overflow: hidden; flex-shrink: 0; border: 2px solid rgba(255,204,0,0.4); }
+  .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-upload-info { flex: 1; }
+  .photo-upload-info p { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .photo-upload-info span { font-size: 11px; color: var(--text-secondary); }
+  .photo-upload-btn { background: rgba(255,102,0,0.18); border: 1px solid rgba(255,102,0,0.4); color: #ffaa44; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .photo-upload-btn:hover { background: rgba(255,102,0,0.3); }
+  #photoFileInput { display: none; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-save { background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold)); border: none; color: #1a0800; font-size: 14px; font-weight: 700; padding: 10px 24px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-save:hover { opacity: 0.88; }
+  .btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--text-secondary); font-size: 14px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-cancel:hover { color: var(--text-primary); }
+  @media (max-width: 1024px) {
+    .grid4 { grid-template-columns: repeat(2, 1fr); }
+    .shop-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; padding: 12px 6px; }
+    .sidebar { --sidebar-w: 60px; }
+    .logo-text { display: none; }
+    .nav-item { justify-content: center; }
+    .trainer-mini { flex-direction: column; }
+    .profile-hero { flex-direction: column; text-align: center; }
+    .hero-stats { justify-content: center; }
+    .grid22 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="bgOverlay"></div>
+<canvas id="sparkCanvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">POKEMON<span>NEXUS</span></div>
+    </div>
+    <div class="topbar-page" id="topbarPage">Trainer Profile</div>
+    <div class="topbar-right">
+      <div class="coins-pill" onclick="showToast('💰 Nexus Coin Shop available in Rewards Center!')">🪙 <span id="topCoins">37500</span></div>
+      <div class="level-pill">⭐ Lv.<span id="topLevel">42</span></div>
+      <button class="notif-btn" onclick="showToast('🔔 No new notifications')">🔔</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-item active" onclick="navigate(this,'profile','Trainer Profile')"><span class="nav-icon">👤</span><span style="display:inline;">Trainer Profile</span></div>
+    <div class="nav-item" onclick="navigate(this,'collection','Pokémon Collection')"><span class="nav-icon">⭐</span><span style="display:inline;">Pokemon Collection</span></div>
+    <div class="nav-item" onclick="navigate(this,'quests','Quest Dashboard')"><span class="nav-icon">📋</span><span style="display:inline;">Quest Dashboard</span></div>
+    <div class="nav-item" onclick="navigate(this,'inventory','Inventory')"><span class="nav-icon">🏠</span><span style="display:inline;">Inventory</span></div>
+    <div class="nav-item" onclick="navigate(this,'battle','Battle Arena')"><span class="nav-icon">🔥</span><span style="display:inline;">Battle Arena</span></div>
+    <div class="nav-item" onclick="navigate(this,'rewards','Rewards Center')"><span class="nav-icon">🎁</span><span style="display:inline;">Rewards Center</span><span class="nav-badge new">NEW</span></div>
+    <div class="nav-item" onclick="navigate(this,'leaderboard','Leaderboard')"><span class="nav-icon">🏆</span><span style="display:inline;">Leaderboard</span></div>
+    <div class="nav-item" onclick="navigate(this,'achievements','Achievements')"><span class="nav-icon">🎖️</span><span style="display:inline;">Achievements</span></div>
+    <div class="nav-item" onclick="navigate(this,'admin','Admin Panel')"><span class="nav-icon">⚙️</span><span style="display:inline;">Admin Panel</span></div>
+    <div class="sidebar-bottom">
+      <div class="trainer-mini">
+        <div class="avatar-sm" id="sideAvatar"><span id="sideAvatarText">A</span><div class="online-dot"></div></div>
+        <div>
+          <div class="trainer-mini-name" id="sideName">AshKetchum</div>
+          <div class="trainer-mini-rank" id="sideRank">Champion Rank</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- TRAINER PROFILE -->
+    <div class="page-view active" id="page-profile">
+      <div><div class="page-title">Trainer Profile</div><div class="page-sub">Your adventure stats and progression</div></div>
+      <div class="profile-hero">
+        <div class="avatar-lg-wrap">
+          <div class="avatar-lg" id="heroAvatar"><span id="heroAvatarText">A</span></div>
+          <div class="avatar-level">LVL <span id="dispLevel">42</span></div>
+        </div>
+        <div class="hero-info">
+          <div class="hero-name" id="heroName">AshKetchum</div>
+          <div class="hero-rank">🏆 <span id="heroTitle">Pokemon Master Champion</span></div>
+          <div class="gym-badges">
+            <span class="gym-badge gb-fire">FIRE GYM</span>
+            <span class="gym-badge gb-water">WATER GYM</span>
+            <span class="gym-badge gb-elec">ELECTRIC GYM</span>
+            <span class="gym-badge gb-grass">GRASS GYM</span>
+            <span class="gym-badge gb-dragon">DRAGON GYM</span>
+          </div>
+          <div class="xp-top"><span>XP Progress to Level <span id="nextLvl">43</span></span><span id="xpText">12,450 / 15,000</span></div>
+          <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:83%"></div></div>
+        </div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="hstat-val" id="statLevel">42</div><div class="hstat-lbl">LEVEL</div></div>
+          <div class="hstat"><div class="hstat-val" id="statPoke">186</div><div class="hstat-lbl">POKEMON</div></div>
+          <div class="hstat"><div class="hstat-val" id="statWins">184</div><div class="hstat-lbl">WINS</div></div>
+          <div class="hstat coins"><div class="hstat-val" id="statCoins">37.5K</div><div class="hstat-lbl">COINS</div></div>
+        </div>
+        <button class="edit-btn" onclick="openEdit()">✏️ Edit Profile</button>
+      </div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">⚔️</div><div class="mini-card-val" id="mc1">184</div><div class="mini-card-lbl">Battle Wins</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🔴</div><div class="mini-card-val" id="mc2">186</div><div class="mini-card-lbl">Pokémon Caught</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🗺️</div><div class="mini-card-val">5</div><div class="mini-card-lbl">Regions Explored</div></div>
+        <div class="mini-card" style="cursor:pointer" onclick="navigate(document.querySelector('.nav-item:nth-child(6)'),'rewards','Rewards Center')"><div class="mini-card-icon">🎁</div><div class="mini-card-val" style="color:var(--accent-gold)">12</div><div class="mini-card-lbl">Rewards Earned</div></div>
+      </div>
+      <div class="grid22">
+        <div class="section-card">
+          <div class="sec-title">Battle Record <span class="sec-badge sec-badge-green">+12 this week</span></div>
+          <div class="br-row"><span class="br-label">Wins</span><div class="br-bar-wrap"><div class="br-bar bar-green" id="bBarW" style="width:78%"></div></div><span class="br-val val-green" id="brWins">184</span></div>
+          <div class="br-row"><span class="br-label">Losses</span><div class="br-bar-wrap"><div class="br-bar bar-red" id="bBarL" style="width:22%"></div></div><span class="br-val val-red" id="brLoss">50</span></div>
+          <div class="br-row"><span class="br-label">Win Rate</span><div class="br-bar-wrap"><div class="br-bar bar-yellow" id="bBarR" style="width:78%"></div></div><span class="br-val val-yellow" id="brRate">78%</span></div>
+        </div>
+        <div class="section-card">
+          <div class="sec-title">Skill Stats</div>
+          <div class="skill-row"><span class="skill-name">Attack</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:85%"></div></div><span class="skill-val">85</span></div>
+          <div class="skill-row"><span class="skill-name">Defense</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:72%"></div></div><span class="skill-val">72</span></div>
+          <div class="skill-row"><span class="skill-name">Speed</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:90%"></div></div><span class="skill-val">90</span></div>
+          <div class="skill-row"><span class="skill-name">Special</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:68%"></div></div><span class="skill-val">68</span></div>
+        </div>
+      </div>
+      <div class="grid22">
+        <div class="section-card">
+          <div class="sec-title">Achievements <span class="sec-badge">8/12</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🏆</div><span class="ach-name">First Battle Win</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🎖️</div><span class="ach-name">Pokemon Collector</span></div>
+          <div class="ach-item"><div class="ach-icon earned">⚡</div><span class="ach-name">Speed Trainer</span></div>
+          <div class="ach-item"><div class="ach-icon locked">🔒</div><span class="ach-name locked">Legendary Catcher</span></div>
+          <div class="ach-item"><div class="ach-icon locked">🔒</div><span class="ach-name locked">Nexus Champion</span></div>
+        </div>
+        <div class="section-card">
+          <div class="sec-title">Recent Activity</div>
+          <div class="act-item"><div class="act-avatar" style="background:rgba(34,197,94,0.2);color:#4ade80;">W</div><span class="act-text">Beat Trainer Gary</span><span class="act-time">2h ago</span></div>
+          <div class="act-item"><div class="act-avatar" style="background:rgba(99,102,241,0.2);color:#a5b4fc;">C</div><span class="act-text">Caught Dragonite</span><span class="act-time">5h ago</span></div>
+          <div class="act-item"><div class="act-avatar" style="background:rgba(245,158,11,0.2);color:#fbbf24;">Q</div><span class="act-text">Daily Quest Complete</span><span class="act-time">1d ago</span></div>
+          <div class="act-item"><div class="act-avatar" style="background:rgba(239,68,68,0.2);color:#f87171;">L</div><span class="act-text">Lost to Champion Red</span><span class="act-time">2d ago</span></div>
+          <div class="act-item"><div class="act-avatar" style="background:rgba(255,140,0,0.2);color:#ffaa44;">T</div><span class="act-text">Nexus Tournament Win</span><span class="act-time">3d ago</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POKEMON COLLECTION -->
+    <div class="page-view" id="page-collection">
+      <div><div class="page-title">Pokémon Collection</div><div class="page-sub">186 Pokémon caught • Pokédex completion: 78%</div></div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">🔥</div><div class="mini-card-val">48</div><div class="mini-card-lbl">Fire Type</div></div>
+        <div class="mini-card"><div class="mini-card-icon">💧</div><div class="mini-card-val">35</div><div class="mini-card-lbl">Water Type</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🌿</div><div class="mini-card-val">29</div><div class="mini-card-lbl">Grass Type</div></div>
+        <div class="mini-card"><div class="mini-card-icon">✨</div><div class="mini-card-val">12</div><div class="mini-card-lbl">Legendary</div></div>
+      </div>
+      <div class="poke-grid">
+        <div class="poke-card" onclick="showToast('🐉 Charizard selected!')"><div class="poke-card-emoji">🐉</div><div class="poke-card-name">Charizard</div><div class="poke-card-type">Fire / Flying</div><div class="poke-card-cp">CP 4230</div></div>
+        <div class="poke-card" onclick="showToast('🐢 Blastoise selected!')"><div class="poke-card-emoji">🐢</div><div class="poke-card-name">Blastoise</div><div class="poke-card-type">Water</div><div class="poke-card-cp">CP 3890</div></div>
+        <div class="poke-card" onclick="showToast('🦕 Venusaur selected!')"><div class="poke-card-emoji">🦕</div><div class="poke-card-name">Venusaur</div><div class="poke-card-type">Grass / Poison</div><div class="poke-card-cp">CP 3720</div></div>
+        <div class="poke-card" onclick="showToast('⚡ Pikachu selected!')"><div class="poke-card-emoji">⚡</div><div class="poke-card-name">Pikachu</div><div class="poke-card-type">Electric</div><div class="poke-card-cp">CP 1800</div></div>
+        <div class="poke-card" onclick="showToast('🐲 Dragonite selected!')"><div class="poke-card-emoji">🐲</div><div class="poke-card-name">Dragonite</div><div class="poke-card-type">Dragon / Flying</div><div class="poke-card-cp">CP 4120</div></div>
+        <div class="poke-card" onclick="showToast('🔮 Mewtwo selected!')"><div class="poke-card-emoji">🔮</div><div class="poke-card-name">Mewtwo</div><div class="poke-card-type">Psychic</div><div class="poke-card-cp">CP 4920</div></div>
+        <div class="poke-card" onclick="showToast('🌊 Gyarados selected!')"><div class="poke-card-emoji">🌊</div><div class="poke-card-name">Gyarados</div><div class="poke-card-type">Water / Flying</div><div class="poke-card-cp">CP 3650</div></div>
+        <div class="poke-card" onclick="showToast('🦊 Arcanine selected!')"><div class="poke-card-emoji">🦊</div><div class="poke-card-name">Arcanine</div><div class="poke-card-type">Fire</div><div class="poke-card-cp">CP 3200</div></div>
+        <div class="poke-card" onclick="showToast('💪 Machamp selected!')"><div class="poke-card-emoji">💪</div><div class="poke-card-name">Machamp</div><div class="poke-card-type">Fighting</div><div class="poke-card-cp">CP 3100</div></div>
+        <div class="poke-card" onclick="showToast('🧊 Lapras selected!')"><div class="poke-card-emoji">🧊</div><div class="poke-card-name">Lapras</div><div class="poke-card-type">Water / Ice</div><div class="poke-card-cp">CP 2900</div></div>
+      </div>
+    </div>
+
+    <!-- QUEST DASHBOARD -->
+    <div class="page-view" id="page-quests">
+      <div><div class="page-title">Quest Dashboard</div><div class="page-sub">Active quests and missions</div></div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">✅</div><div class="mini-card-val">24</div><div class="mini-card-lbl">Completed</div></div>
+        <div class="mini-card"><div class="mini-card-icon">⏳</div><div class="mini-card-val">3</div><div class="mini-card-lbl">Active</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🔒</div><div class="mini-card-val">8</div><div class="mini-card-lbl">Locked</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🌟</div><div class="mini-card-val">5,200</div><div class="mini-card-lbl">XP Earned</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="quest-item" onclick="showToast('⚔️ Battle Champion quest started!')"><div class="quest-icon">⚔️</div><div class="quest-info"><div class="quest-name">Battle Champion</div><div class="quest-desc">Defeat 10 trainers in the Nexus Battle Arena</div><div class="quest-prog-wrap"><div class="quest-prog" style="width:70%"></div></div></div><div style="text-align:right;flex-shrink:0;"><div class="quest-reward">+1500 XP</div><div class="quest-status">7 / 10 done</div></div></div>
+        <div class="quest-item" onclick="showToast('🔴 Rare Hunter quest started!')"><div class="quest-icon">🔴</div><div class="quest-info"><div class="quest-name">Rare Hunter</div><div class="quest-desc">Catch 5 rare Pokémon in the wild</div><div class="quest-prog-wrap"><div class="quest-prog" style="width:40%"></div></div></div><div style="text-align:right;flex-shrink:0;"><div class="quest-reward">+2000 XP</div><div class="quest-status">2 / 5 done</div></div></div>
+        <div class="quest-item" onclick="showToast('🗺️ Dragon Mountain quest started!')"><div class="quest-icon">🗺️</div><div class="quest-info"><div class="quest-name">Dragon Mountain Explorer</div><div class="quest-desc">Complete Dragon Mountain region exploration</div><div class="quest-prog-wrap"><div class="quest-prog" style="width:20%"></div></div></div><div style="text-align:right;flex-shrink:0;"><div class="quest-reward">+3000 XP</div><div class="quest-status">1 / 5 areas</div></div></div>
+        <div class="quest-item" onclick="showToast('🏆 Tournament Glory — Complete!')"><div class="quest-icon">🏆</div><div class="quest-info"><div class="quest-name">Nexus Tournament Glory</div><div class="quest-desc">Win 3 consecutive Nexus tournament matches</div><div class="quest-prog-wrap"><div class="quest-prog" style="width:100%"></div></div></div><div style="text-align:right;flex-shrink:0;"><div class="quest-reward">+5000 XP</div><div class="quest-status" style="color:#4ade80;">✓ Complete!</div></div></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="page-view" id="page-inventory">
+      <div><div class="page-title">Inventory</div><div class="page-sub">Your items and equipment</div></div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">🎒</div><div class="mini-card-val">42</div><div class="mini-card-lbl">Total Items</div></div>
+        <div class="mini-card"><div class="mini-card-icon">💊</div><div class="mini-card-val">12</div><div class="mini-card-lbl">Potions</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🔴</div><div class="mini-card-val">18</div><div class="mini-card-lbl">Poké Balls</div></div>
+        <div class="mini-card"><div class="mini-card-icon">✨</div><div class="mini-card-val">3</div><div class="mini-card-lbl">Rare Items</div></div>
+      </div>
+      <div class="inv-grid">
+        <div class="inv-card" onclick="showToast('🧪 Health Potion used!')"><div class="inv-icon">🧪</div><div class="inv-name">Health Potion</div><div class="inv-qty">×5</div></div>
+        <div class="inv-card" onclick="showToast('⚡ Energy Boost activated!')"><div class="inv-icon">⚡</div><div class="inv-name">Energy Boost</div><div class="inv-qty">×3</div></div>
+        <div class="inv-card" onclick="showToast('🔴 Poké Ball ready!')"><div class="inv-icon">🔴</div><div class="inv-name">Poké Ball</div><div class="inv-qty">×10</div></div>
+        <div class="inv-card" onclick="showToast('⚫ Ultra Ball ready!')"><div class="inv-icon">⚫</div><div class="inv-name">Ultra Ball</div><div class="inv-qty">×4</div></div>
+        <div class="inv-card" onclick="showToast('💎 Rare Crystal inspected!')"><div class="inv-icon">💎</div><div class="inv-name">Rare Crystal</div><div class="inv-qty">×3</div></div>
+        <div class="inv-card" onclick="showToast('🔥 Fire Stone equipped!')"><div class="inv-icon">🔥</div><div class="inv-name">Fire Stone</div><div class="inv-qty">×1</div></div>
+        <div class="inv-card" onclick="showToast('🌊 Water Stone equipped!')"><div class="inv-icon">🌊</div><div class="inv-name">Water Stone</div><div class="inv-qty">×2</div></div>
+        <div class="inv-card" onclick="showToast('🗺️ Map unlocked!')"><div class="inv-icon">🗺️</div><div class="inv-name">Region Map</div><div class="inv-qty">×1</div></div>
+        <div class="inv-card" onclick="showToast('🍬 Rare Candy given!')"><div class="inv-icon">🍬</div><div class="inv-name">Rare Candy</div><div class="inv-qty">×2</div></div>
+        <div class="inv-card" onclick="showToast('🔮 TM Fire Blast selected!')"><div class="inv-icon">🔮</div><div class="inv-name">TM Fire Blast</div><div class="inv-qty">×1</div></div>
+      </div>
+    </div>
+
+    <!-- BATTLE ARENA -->
+    <div class="page-view" id="page-battle">
+      <div><div class="page-title">Battle Arena</div><div class="page-sub">Choose your battle mode</div></div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">🏆</div><div class="mini-card-val">184</div><div class="mini-card-lbl">Total Wins</div></div>
+        <div class="mini-card"><div class="mini-card-icon">💀</div><div class="mini-card-val">50</div><div class="mini-card-lbl">Total Losses</div></div>
+        <div class="mini-card"><div class="mini-card-icon">📈</div><div class="mini-card-val">78%</div><div class="mini-card-lbl">Win Rate</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🔥</div><div class="mini-card-val">12</div><div class="mini-card-lbl">Win Streak</div></div>
+      </div>
+      <div class="battle-grid">
+        <div class="battle-card" onclick="showToast('⚔️ Entering Quick Battle...')"><div class="battle-card-icon">⚔️</div><div class="battle-card-name">Quick Battle</div><div class="battle-card-desc">Fast-paced random matchup. Best of 1 round.</div><button class="battle-card-btn">Enter Battle</button></div>
+        <div class="battle-card" onclick="showToast('🏆 Entering Nexus Ranked...')"><div class="battle-card-icon">🏆</div><div class="battle-card-name">Nexus Ranked</div><div class="battle-card-desc">Competitive ranked matches. Earn Nexus Points.</div><button class="battle-card-btn">Enter Ranked</button></div>
+        <div class="battle-card" onclick="showToast('🎖️ Entering Nexus Tournament...')"><div class="battle-card-icon">🎖️</div><div class="battle-card-name">Tournament</div><div class="battle-card-desc">Weekly Nexus bracket. Big XP rewards.</div><button class="battle-card-btn">Join Tournament</button></div>
+        <div class="battle-card" onclick="showToast('👥 Entering Trainer Battle...')"><div class="battle-card-icon">👥</div><div class="battle-card-name">Trainer Battle</div><div class="battle-card-desc">Challenge a specific trainer by name or ID.</div><button class="battle-card-btn">Challenge Trainer</button></div>
+      </div>
+    </div>
+
+    <!-- REWARDS CENTER -->
+    <div class="page-view" id="page-rewards">
+      <div><div class="page-title">🎁 Rewards Center</div><div class="page-sub">Claim your daily rewards, milestone bonuses and spend coins in the shop</div></div>
+      <div class="rewards-hero">
+        <div class="rh-left">
+          <h2>Welcome back, Trainer! 🔥</h2>
+          <p>You have <strong style="color:var(--accent-gold)">1 unclaimed</strong> daily reward today. Don't miss your streak bonus!</p>
+        </div>
+        <div class="rh-stats">
+          <div class="rh-stat"><div class="rh-stat-val">12</div><div class="rh-stat-lbl">TOTAL EARNED</div></div>
+          <div class="rh-stat"><div class="rh-stat-val">7</div><div class="rh-stat-lbl">DAY STREAK</div></div>
+          <div class="rh-stat"><div class="rh-stat-val">37.5K</div><div class="rh-stat-lbl">COINS</div></div>
+        </div>
+      </div>
+      <div class="reward-tabs">
+        <div class="rtab active" onclick="switchRTab(this,'rt-daily')">📅 Daily Login</div>
+        <div class="rtab" onclick="switchRTab(this,'rt-earned')">🏅 Earned</div>
+        <div class="rtab" onclick="switchRTab(this,'rt-milestones')">🎯 Milestones</div>
+        <div class="rtab" onclick="switchRTab(this,'rt-shop')">🛒 Coin Shop</div>
+      </div>
+
+      <div class="rtab-content active" id="rt-daily">
+        <div class="section-card">
+          <div class="sec-title">📅 7-Day Login Streak <span class="sec-badge sec-badge-gold">Day 7 Available!</span></div>
+          <div class="daily-row">
+            <div class="daily-chest claimed"><div class="claimed-stamp">✓</div><div class="daily-chest-icon">📦</div><div class="daily-chest-day">Day 1</div><div class="daily-chest-val">+100</div></div>
+            <div class="daily-chest claimed"><div class="claimed-stamp">✓</div><div class="daily-chest-icon">📦</div><div class="daily-chest-day">Day 2</div><div class="daily-chest-val">+150</div></div>
+            <div class="daily-chest claimed"><div class="claimed-stamp">✓</div><div class="daily-chest-icon">🎁</div><div class="daily-chest-day">Day 3</div><div class="daily-chest-val">×2 Potions</div></div>
+            <div class="daily-chest claimed"><div class="claimed-stamp">✓</div><div class="daily-chest-icon">💰</div><div class="daily-chest-day">Day 4</div><div class="daily-chest-val">+350</div></div>
+            <div class="daily-chest claimed"><div class="claimed-stamp">✓</div><div class="daily-chest-icon">🎁</div><div class="daily-chest-day">Day 5</div><div class="daily-chest-val">×3 Balls</div></div>
+            <div class="daily-chest claimed"><div class="claimed-stamp">✓</div><div class="daily-chest-icon">⭐</div><div class="daily-chest-day">Day 6</div><div class="daily-chest-val">+500 XP</div></div>
+            <div class="daily-chest" id="day7chest" onclick="claimDaily(this)"><div class="daily-chest-icon">👑</div><div class="daily-chest-day">Day 7</div><div class="daily-chest-val">+2000 XP</div></div>
+          </div>
+          <div style="background:rgba(255,204,0,0.06);border:1px solid rgba(255,204,0,0.2);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--text-secondary);">
+            💡 <strong style="color:var(--accent-gold)">Tip:</strong> Keep your streak alive! Missing a day resets the counter back to Day 1.
+          </div>
+        </div>
+      </div>
+
+      <div class="rtab-content" id="rt-earned">
+        <div class="section-card">
+          <div class="sec-title">🏅 All Earned Rewards <span class="sec-badge sec-badge-gold">12 Total</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="reward-item" onclick="showToast('🏅 First Battle Win — +500 XP claimed!')"><div class="rew-icon">🏅</div><div class="rew-info"><div class="rew-name">First Battle Win</div><div class="rew-desc">Defeated your first trainer</div></div><div class="rew-val">+500 XP</div></div>
+            <div class="reward-item" onclick="showToast('👑 Nexus Champion — +2000 XP claimed!')"><div class="rew-icon">👑</div><div class="rew-info"><div class="rew-name">Nexus Champion</div><div class="rew-desc">Won tournament finals</div></div><div class="rew-val">+2000 XP</div></div>
+            <div class="reward-item" onclick="showToast('💎 Rare Crystal ×3 added!')"><div class="rew-icon">💎</div><div class="rew-info"><div class="rew-name">Rare Crystal ×3</div><div class="rew-desc">Dragon Mountain exploration</div></div><div class="rew-val purple">×3</div></div>
+            <div class="reward-item" onclick="showToast('🪙 +350 Coins added!')"><div class="rew-icon">🪙</div><div class="rew-info"><div class="rew-name">Daily Quest Bonus</div><div class="rew-desc">7-day login streak</div></div><div class="rew-val">+350 coins</div></div>
+            <div class="reward-item" onclick="showToast('🧪 Health Potion ×5 added!')"><div class="rew-icon">🧪</div><div class="rew-info"><div class="rew-name">Health Potion ×5</div><div class="rew-desc">Quest completion reward</div></div><div class="rew-val blue">Inventory</div></div>
+            <div class="reward-item" onclick="showToast('⚡ Energy Boost ×3 added!')"><div class="rew-icon">⚡</div><div class="rew-info"><div class="rew-name">Energy Boost ×3</div><div class="rew-desc">Battle arena drop</div></div><div class="rew-val blue">Inventory</div></div>
+            <div class="reward-item" onclick="showToast('🎯 Capture Ball ×10 added!')"><div class="rew-icon">🎯</div><div class="rew-info"><div class="rew-name">Capture Ball ×10</div><div class="rew-desc">Explorer reward</div></div><div class="rew-val blue">Inventory</div></div>
+            <div class="reward-item" onclick="showToast('🔥 Fire Badge equipped!')"><div class="rew-icon">🔥</div><div class="rew-info"><div class="rew-name">Fire Badge</div><div class="rew-desc">Fire Gym conquest</div></div><div class="rew-val green">Badge</div></div>
+            <div class="reward-item" onclick="showToast('🌟 Legendary Title unlocked!')"><div class="rew-icon">🌟</div><div class="rew-info"><div class="rew-name">Legendary Title</div><div class="rew-desc">Reached Nexus Level 40</div></div><div class="rew-val green">Title</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rtab-content" id="rt-milestones">
+        <div class="section-card">
+          <div class="sec-title">🎯 Milestone Rewards <span class="sec-badge">6/10 Complete</span></div>
+          <div class="milestone-grid">
+            <div class="milestone-card completed" onclick="showToast('✅ Already claimed: First Victory!')"><div class="ms-icon">🏆</div><div class="ms-info"><div class="ms-name">First Victory</div><div class="ms-req">Win your first battle</div><div class="ms-prog"><div class="ms-prog-fill" style="width:100%"></div></div></div><div class="ms-reward" style="color:#4ade80;">✓ +500 XP</div></div>
+            <div class="milestone-card completed" onclick="showToast('✅ Already claimed: Poke Collector!')"><div class="ms-icon">🔴</div><div class="ms-info"><div class="ms-name">Pokémon Collector</div><div class="ms-req">Catch 50 Pokémon</div><div class="ms-prog"><div class="ms-prog-fill" style="width:100%"></div></div></div><div class="ms-reward" style="color:#4ade80;">✓ +800 XP</div></div>
+            <div class="milestone-card completed" onclick="showToast('✅ Already claimed: Gym Conqueror!')"><div class="ms-icon">🔥</div><div class="ms-info"><div class="ms-name">Gym Conqueror</div><div class="ms-req">Beat 3 gym leaders</div><div class="ms-prog"><div class="ms-prog-fill" style="width:100%"></div></div></div><div class="ms-reward" style="color:#4ade80;">✓ +1200 XP</div></div>
+            <div class="milestone-card" onclick="showToast('⚔️ Battle Hardened in progress: 184/200 wins')"><div class="ms-icon">⚔️</div><div class="ms-info"><div class="ms-name">Battle Hardened</div><div class="ms-req">Win 200 battles (184/200)</div><div class="ms-prog"><div class="ms-prog-fill" style="width:92%"></div></div></div><div class="ms-reward">+2000 XP</div></div>
+            <div class="milestone-card" onclick="showToast('🐲 Dragon Master in progress: 1/3 legendaries')"><div class="ms-icon">🐲</div><div class="ms-info"><div class="ms-name">Dragon Master</div><div class="ms-req">Catch 3 legendary Pokémon (1/3)</div><div class="ms-prog"><div class="ms-prog-fill" style="width:33%"></div></div></div><div class="ms-reward">+5000 XP</div></div>
+            <div class="milestone-card" onclick="showToast('🗺️ Explorer in progress: 5/8 regions')"><div class="ms-icon">🗺️</div><div class="ms-info"><div class="ms-name">World Explorer</div><div class="ms-req">Explore 8 regions (5/8)</div><div class="ms-prog"><div class="ms-prog-fill" style="width:62%"></div></div></div><div class="ms-reward">+3500 XP</div></div>
+            <div class="milestone-card locked"><div class="ms-icon">🔒</div><div class="ms-info"><div class="ms-name">Pokédex Master</div><div class="ms-req">Catch all 251 Pokémon</div><div class="ms-prog"><div class="ms-prog-fill" style="width:74%"></div></div></div><div class="ms-reward">+10000 XP</div></div>
+            <div class="milestone-card locked"><div class="ms-icon">🔒</div><div class="ms-info"><div class="ms-name">Nexus Legend</div><div class="ms-req">Reach Level 100</div><div class="ms-prog"><div class="ms-prog-fill" style="width:42%"></div></div></div><div class="ms-reward">+25000 XP</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rtab-content" id="rt-shop">
+        <div style="background:rgba(255,204,0,0.06);border:1px solid rgba(255,204,0,0.2);border-radius:8px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-size:13px;color:var(--text-secondary);">Your Balance</span>
+          <span style="font-size:18px;font-weight:700;color:var(--accent-gold);">🪙 37,500 Nexus Coins</span>
+        </div>
+        <div class="shop-grid">
+          <div class="shop-card" onclick="showToast('🧪 Mega Potion Pack — 500 coins spent!')"><div class="shop-icon">🧪</div><div class="shop-name">Mega Potion Pack</div><div class="shop-desc">×10 Max Potions for tough battles</div><button class="shop-btn">🪙 500 Coins</button></div>
+          <div class="shop-card" onclick="showToast('⭐ Ultra Ball Bundle — 1200 coins spent!')"><div class="shop-icon">⭐</div><div class="shop-name">Ultra Ball Bundle</div><div class="shop-desc">×15 Ultra Balls for rare catches</div><button class="shop-btn">🪙 1,200 Coins</button></div>
+          <div class="shop-card" onclick="showToast('🍬 Rare Candy ×5 — 2000 coins spent!')"><div class="shop-icon">🍬</div><div class="shop-name">Rare Candy ×5</div><div class="shop-desc">Instantly level up any Pokémon</div><button class="shop-btn">🪙 2,000 Coins</button></div>
+          <div class="shop-card" onclick="showToast('💎 Lucky Egg — 3500 coins spent!')"><div class="shop-icon">💎</div><div class="shop-name">Lucky Egg</div><div class="shop-desc">Double XP gain for 30 minutes</div><button class="shop-btn">🪙 3,500 Coins</button></div>
+          <div class="shop-card" onclick="showToast('🔮 TM Bundle — 5000 coins spent!')"><div class="shop-icon">🔮</div><div class="shop-name">TM Bundle ×3</div><div class="shop-desc">Random rare TMs for your team</div><button class="shop-btn">🪙 5,000 Coins</button></div>
+          <div class="shop-card" onclick="showToast('👑 Elite Trainer Pass — 10000 coins spent!')"><div class="shop-icon">👑</div><div class="shop-name">Elite Trainer Pass</div><div class="shop-desc">Access exclusive Elite Trainer battles</div><button class="shop-btn">🪙 10,000 Coins</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="page-view" id="page-leaderboard">
+      <div><div class="page-title">Leaderboard</div><div class="page-sub">Global Nexus rankings this season</div></div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">📊</div><div class="mini-card-val">#7</div><div class="mini-card-lbl">Your Rank</div></div>
+        <div class="mini-card"><div class="mini-card-icon">👥</div><div class="mini-card-val">2,841</div><div class="mini-card-lbl">Total Trainers</div></div>
+        <div class="mini-card"><div class="mini-card-icon">⬆️</div><div class="mini-card-val">+3</div><div class="mini-card-lbl">Rank Change</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🏅</div><div class="mini-card-val">1,820</div><div class="mini-card-lbl">Nexus Score</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div class="lb-item"><div class="lb-rank" style="color:var(--accent-gold);">🥇</div><div class="lb-avatar" style="background:rgba(255,200,0,0.2);color:#ffcc00;">R</div><div class="lb-name">TrainerRed</div><div class="lb-score">2,450 pts</div></div>
+        <div class="lb-item"><div class="lb-rank" style="color:#c0c0c0;">🥈</div><div class="lb-avatar" style="background:rgba(192,192,192,0.2);color:#c0c0c0;">B</div><div class="lb-name">BlueMaster</div><div class="lb-score">2,310 pts</div></div>
+        <div class="lb-item"><div class="lb-rank" style="color:#cd7f32;">🥉</div><div class="lb-avatar" style="background:rgba(205,127,50,0.2);color:#cd7f32;">M</div><div class="lb-name">MistyWave</div><div class="lb-score">2,180 pts</div></div>
+        <div class="lb-item"><div class="lb-rank" style="color:var(--text-secondary);">4</div><div class="lb-avatar" style="background:rgba(99,102,241,0.2);color:#a5b4fc;">G</div><div class="lb-name">GaryOak</div><div class="lb-score">2,050 pts</div></div>
+        <div class="lb-item"><div class="lb-rank" style="color:var(--text-secondary);">5</div><div class="lb-avatar" style="background:rgba(34,197,94,0.2);color:#4ade80;">L</div><div class="lb-name">LeafGreen</div><div class="lb-score">1,980 pts</div></div>
+        <div class="lb-item"><div class="lb-rank" style="color:var(--text-secondary);">6</div><div class="lb-avatar" style="background:rgba(239,68,68,0.2);color:#f87171;">S</div><div class="lb-name">SilverFang</div><div class="lb-score">1,870 pts</div></div>
+        <div class="lb-item me"><div class="lb-rank" style="color:var(--accent-gold);">7</div><div class="lb-avatar" id="lbAvatarEl" style="background:rgba(255,100,0,0.2);color:#ffaa44;">A</div><div class="lb-name" id="lbName">AshKetchum <span style="font-size:11px;color:var(--accent-gold);">(You)</span></div><div class="lb-score">1,820 pts</div></div>
+        <div class="lb-item"><div class="lb-rank" style="color:var(--text-secondary);">8</div><div class="lb-avatar" style="background:rgba(6,182,212,0.2);color:#22d3ee;">D</div><div class="lb-name">DragonLord</div><div class="lb-score">1,710 pts</div></div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div class="page-view" id="page-achievements">
+      <div><div class="page-title">Achievements</div><div class="page-sub">8 of 12 achievements unlocked</div></div>
+      <div class="grid4">
+        <div class="mini-card"><div class="mini-card-icon">✅</div><div class="mini-card-val">8</div><div class="mini-card-lbl">Unlocked</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🔒</div><div class="mini-card-val">4</div><div class="mini-card-lbl">Locked</div></div>
+        <div class="mini-card"><div class="mini-card-icon">🏆</div><div class="mini-card-val">66%</div><div class="mini-card-lbl">Completion</div></div>
+        <div class="mini-card"><div class="mini-card-icon">⭐</div><div class="mini-card-val">4,200</div><div class="mini-card-lbl">XP Earned</div></div>
+      </div>
+      <div class="grid22">
+        <div class="section-card">
+          <div class="sec-title">🏅 Unlocked</div>
+          <div class="ach-item"><div class="ach-icon earned">🏆</div><span class="ach-name">First Battle Win</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+500 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🎖️</div><span class="ach-name">Pokemon Collector</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+300 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">⚡</div><span class="ach-name">Speed Trainer</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+400 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🔥</div><span class="ach-name">Fire Gym Conqueror</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+600 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🌊</div><span class="ach-name">Water Gym Conqueror</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+600 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🗺️</div><span class="ach-name">Region Explorer</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+350 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🐉</div><span class="ach-name">Dragon Tamer</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+800 XP</span></div>
+          <div class="ach-item"><div class="ach-icon earned">🏅</div><span class="ach-name">Nexus Tournament Finalist</span><span style="margin-left:auto;font-size:11px;color:#4ade80;">+650 XP</span></div>
+        </div>
+        <div class="section-card">
+          <div class="sec-title">🔒 Locked</div>
+          <div class="ach-item"><div class="ach-icon locked">🔒</div><span class="ach-name locked">Legendary Catcher</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted);">Catch all 3 legendaries</span></div>
+          <div class="ach-item"><div class="ach-icon locked">🔒</div><span class="ach-name locked">Nexus Champion</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted);">Win the Grand Nexus Championship</span></div>
+          <div class="ach-item"><div class="ach-icon locked">🔒</div><span class="ach-name locked">Master of All Gyms</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted);">Conquer all 8 gyms</span></div>
+          <div class="ach-item"><div class="ach-icon locked">🔒</div><span class="ach-name locked">Pokédex Complete</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted);">Catch all 251 Pokémon</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="page-view" id="page-admin">
+      <div><div class="page-title">Admin Panel</div><div class="page-sub">Manage your Nexus settings</div></div>
+      <div class="admin-grid">
+        <div class="admin-card" onclick="showToast('👥 User Management opened!')"><div class="admin-card-icon">👥</div><div class="admin-card-title">User Management</div><div class="admin-card-desc">Manage trainer accounts and permissions</div></div>
+        <div class="admin-card" onclick="showToast('⚙️ Nexus Settings opened!')"><div class="admin-card-icon">⚙️</div><div class="admin-card-title">Nexus Settings</div><div class="admin-card-desc">Configure game settings and preferences</div></div>
+        <div class="admin-card" onclick="showToast('📊 Analytics Dashboard opened!')"><div class="admin-card-icon">📊</div><div class="admin-card-title">Analytics</div><div class="admin-card-desc">View detailed gameplay analytics and stats</div></div>
+        <div class="admin-card" onclick="showToast('🛡️ Security Settings opened!')"><div class="admin-card-icon">🛡️</div><div class="admin-card-title">Security</div><div class="admin-card-desc">Manage account security and privacy</div></div>
+        <div class="admin-card" onclick="showToast('🐛 Bug Reports opened!')"><div class="admin-card-icon">🐛</div><div class="admin-card-title">Bug Reports</div><div class="admin-card-desc">View and manage bug reports from trainers</div></div>
+        <div class="admin-card" onclick="showToast('📢 Announcements opened!')"><div class="admin-card-icon">📢</div><div class="admin-card-title">Announcements</div><div class="admin-card-desc">Send notifications to all trainers</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Your Profile</div>
+    <div class="form-grid">
+      <div class="fgroup">
+        <label>Trainer Name</label>
+        <input type="text" id="editName" placeholder="Enter your trainer name">
+      </div>
+      <div class="fgroup">
+        <label>Trainer Title</label>
+        <input type="text" id="editTitle" placeholder="Your rank/title">
+      </div>
+      <div class="fgroup">
+        <label>Level</label>
+        <input type="number" id="editLevel" min="1" max="100" placeholder="Level">
+      </div>
+      <div class="fgroup">
+        <label>Region</label>
+        <select id="editRegion">
+          <option>Kanto</option>
+          <option>Johto</option>
+          <option>Hoenn</option>
+          <option>Sinnoh</option>
+          <option>Unova</option>
+        </select>
+      </div>
+      <div class="fgroup" style="grid-column: 1 / -1;">
+        <label>Bio</label>
+        <input type="text" id="editBio" placeholder="Tell us about your adventure...">
+      </div>
+      <div class="photo-upload-row">
+        <div class="photo-preview" id="photoPreview"><span id="photoPreviewText">A</span></div>
+        <div class="photo-upload-info">
+          <p>Trainer Avatar (Optional)</p>
+          <span>Upload a photo or use your initials</span>
+        </div>
+        <button class="photo-upload-btn" onclick="document.getElementById('photoFileInput').click()">📷 Upload</button>
+        <input type="file" id="photoFileInput" accept="image/*" onchange="handlePhotoUpload()">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global state
+let profileData = {
+  name: 'AshKetchum',
+  title: 'Pokemon Master Champion',
+  level: 42,
+  region: 'Kanto',
+  bio: 'Gotta catch em all!',
+  coins: 37500,
+  pokemonCount: 186,
+  wins: 184
+};
+
+function navigate(el, pageId, pageTitle) {
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  el.classList.add('active');
+  
+  document.querySelectorAll('.page-view').forEach(page => page.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  
+  document.getElementById('topbarPage').textContent = pageTitle;
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+
+function openEdit() {
+  document.getElementById('editName').value = profileData.name;
+  document.getElementById('editTitle').value = profileData.title;
+  document.getElementById('editLevel').value = profileData.level;
+  document.getElementById('editRegion').value = profileData.region;
+  document.getElementById('editBio').value = profileData.bio;
+  document.getElementById('photoPreviewText').textContent = profileData.name.charAt(0).toUpperCase();
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('editOverlay').classList.remove('open');
+}
+
+function saveProfile() {
+  profileData.name = document.getElementById('editName').value || 'AshKetchum';
+  profileData.title = document.getElementById('editTitle').value || 'Trainer';
+  profileData.level = parseInt(document.getElementById('editLevel').value) || 42;
+  profileData.region = document.getElementById('editRegion').value;
+  profileData.bio = document.getElementById('editBio').value;
+  
+  // Update all profile displays
+  document.getElementById('heroName').textContent = profileData.name;
+  document.getElementById('heroTitle').textContent = profileData.title;
+  document.getElementById('dispLevel').textContent = profileData.level;
+  document.getElementById('statLevel').textContent = profileData.level;
+  document.getElementById('topLevel').textContent = profileData.level;
+  document.getElementById('sideName').textContent = profileData.name;
+  document.getElementById('sideRank').textContent = profileData.title;
+  
+  // Update avatar
+  const firstLetter = profileData.name.charAt(0).toUpperCase();
+  document.getElementById('heroAvatarText').textContent = firstLetter;
+  document.getElementById('sideAvatarText').textContent = firstLetter;
+  
+  showToast('✅ Profile updated successfully!');
+  closeEdit();
+}
+
+function handlePhotoUpload() {
+  const input = document.getElementById('photoFileInput');
+  const preview = document.getElementById('photoPreview');
+  
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.innerHTML = `<img src="${e.target.result}" />`;
+      showToast('📷 Photo uploaded successfully!');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function switchRTab(el, tabId) {
+  document.querySelectorAll('.rtab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.rtab-content').forEach(content => content.classList.remove('active'));
+  
+  el.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function claimDaily(el) {
+  if (!el.classList.contains('claimed')) {
+    el.classList.add('claimed');
+    el.innerHTML = '<div class="claimed-stamp">✓</div><div class="daily-chest-icon">👑</div><div class="daily-chest-day">Day 7</div><div class="daily-chest-val">+2000 XP</div>';
+    showToast('🎉 +2000 XP claimed! Your 7-day streak is complete!');
+  }
+}
+
+// Close modal when clicking outside
+document.getElementById('editOverlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeEdit();
+  }
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+  // Set initial values
+  document.getElementById('heroName').textContent = profileData.name;
+  document.getElementById('heroTitle').textContent = profileData.title;
+  document.getElementById('dispLevel').textContent = profileData.level;
+  document.getElementById('topCoins').textContent = profileData.coins.toLocaleString();
+  document.getElementById('topLevel').textContent = profileData.level;
+  document.getElementById('sideName').textContent = profileData.name;
+  document.getElementById('sideRank').textContent = profileData.title;
+  document.getElementById('lbName').textContent = profileData.name + ' (You)';
+});
+</script>
+</body>
+</html>
